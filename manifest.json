@@ -1,0 +1,19 @@
+{
+  "name": "Portfolio Dashboard",
+  "short_name": "Portfolio",
+  "description": "Portfolio analysis dashboard with Google Sheets sync",
+  "start_url": "./portfolio-dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080b10",
+  "theme_color": "#080b10",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./portfolio-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
