@@ -449,12 +449,19 @@
     }
     .mini { width: 42px; padding: 0; }
     .status { margin-left: auto; color: var(--muted); font-size: 12px; }
+    .quant-summary { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .quant-score { font-weight: 900; font-size: 18px; }
+    .score-badge { display: inline-grid; place-items: center; min-width: 52px; padding: 5px 9px; border-radius: 999px; background: #1d2a39; border: 1px solid #3f5064; font-weight: 900; }
+    .quant-table input { min-width: 76px; }
+    .quant-table tr:first-child td { background: rgba(73,211,209,.045); }
+    .quant-note { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 
     @media (max-width: 1120px) {
       .summary { grid-template-columns: repeat(3, 1fr); }
       .main-grid { grid-template-columns: 1fr; }
       .stock-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .ai-layout { grid-template-columns: 1fr; }
+      .quant-summary { grid-template-columns: repeat(2, 1fr); }
       .treemap { height: auto; min-height: 0; grid-template-columns: repeat(2, 1fr); }
       .sector-box { grid-column: span 1 !important; grid-row: span 1 !important; min-height: 220px; }
     }
@@ -468,6 +475,9 @@
       .summary, .stock-grid, .treemap { grid-template-columns: 1fr; }
       .top-tabs { width: 100%; }
       .tab-button { flex: 1 1 0; }
+      .top-tabs { overflow-x: auto; }
+      .tab-button { min-width: max-content; }
+      .quant-summary { grid-template-columns: 1fr 1fr; }
       .diagnosis-grid { grid-template-columns: 1fr; }
       .summary-card { min-height: 78px; }
       .sector-box { min-height: 180px; }
@@ -511,6 +521,7 @@
     <nav class="top-tabs" aria-label="상단 보기 전환">
       <button class="tab-button active" data-view="dashboardView">대시보드</button>
       <button class="tab-button" data-view="aiView">AI 포트폴리오 진단</button>
+      <button class="tab-button" data-view="quantView">퀀트 분석</button>
     </nav>
 
     <div class="view" id="dashboardView">
@@ -598,16 +609,35 @@
         <textarea class="prompt-box" id="aiPrompt" readonly></textarea>
       </section>
     </section>
+
+    <section class="view" id="quantView" hidden>
+      <section class="quant-summary" id="quantSummary"></section>
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>보유 종목 퀀트 순위</h2>
+            <div class="hint">가치 30% · 품질 25% · 성장 20% · 모멘텀 25%</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="quant-table">
+            <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>PER</th><th>PBR</th><th>ROE %</th><th>부채비율 %</th><th>EPS 성장 %</th></tr></thead>
+            <tbody id="quantRows"></tbody>
+          </table>
+        </div>
+        <div class="quant-note">재무지표는 최근 확정 실적 기준으로 직접 입력하세요. 빈 값은 중립점수(50점)로 처리합니다. 퀀트 점수는 비교·점검용이며 매수 신호가 아닙니다.</div>
+      </section>
+    </section>
   </main>
 
   <script src="portfolio-config.js"></script>
   <script>
     const sectorColors = ["#49d3d1", "#69a7ff", "#b68cff", "#f1b84b", "#18c779", "#ff8b5c", "#e36bff", "#8de36b"];
     const sample = [
-      { ticker: "005930.KS", name: "삼성전자", sector: "AI Megacap+", avg: 237867, qty: 15, price: 332000, day: -3.21, rsi: 61.6, bb: 80.2 },
-      { ticker: "011070.KS", name: "LG이노텍", sector: "AI 인프라", avg: 813500, qty: 4, price: 1201000, day: -2.83, rsi: 63.6, bb: 68.4 },
-      { ticker: "007660.KS", name: "이수페타시스", sector: "AI 인프라", avg: 115200, qty: 9, price: 121400, day: -1.30, rsi: 47.9, bb: 42.8 },
-      { ticker: "086520.KQ", name: "에코프로", sector: "2차전지", avg: 50015, qty: 6, price: 123700, day: 0.90, rsi: 45.6, bb: 44.3 }
+      { ticker: "005930.KS", name: "삼성전자", sector: "AI Megacap+", avg: 237867, qty: 15, price: 332000, day: -3.21, rsi: 61.6, bb: 80.2, per: 18, pbr: 1.7, roe: 10, debt: 28, epsGrowth: 22 },
+      { ticker: "011070.KS", name: "LG이노텍", sector: "AI 인프라", avg: 813500, qty: 4, price: 1201000, day: -2.83, rsi: 63.6, bb: 68.4, per: 16, pbr: 1.5, roe: 12, debt: 95, epsGrowth: 18 },
+      { ticker: "007660.KS", name: "이수페타시스", sector: "AI 인프라", avg: 115200, qty: 9, price: 121400, day: -1.30, rsi: 47.9, bb: 42.8, per: 28, pbr: 6.2, roe: 21, debt: 72, epsGrowth: 35 },
+      { ticker: "086520.KQ", name: "에코프로", sector: "2차전지", avg: 50015, qty: 6, price: 123700, day: 0.90, rsi: 45.6, bb: 44.3, per: 0, pbr: 2.1, roe: 3, debt: 88, epsGrowth: -15 }
     ];
 
     let rows = JSON.parse(localStorage.getItem("portfolioRows") || "null") || structuredClone(sample);
@@ -657,7 +687,12 @@
           price: parseNumber(r.price),
           day: Number(r.day || 0),
           rsi: Number(r.rsi || 0),
-          bb: Number(r.bb || 0)
+          bb: Number(r.bb || 0),
+          per: Number(r.per || 0),
+          pbr: Number(r.pbr || 0),
+          roe: Number(r.roe || 0),
+          debt: Number(r.debt || 0),
+          epsGrowth: Number(r.epsGrowth || 0)
         }));
     }
 
@@ -1003,6 +1038,44 @@
       `).join("");
     }
 
+    function quantMetric(value, scorer) {
+      const n = Number(value);
+      return !Number.isFinite(n) || n === 0 ? 50 : clamp(Math.round(scorer(n)), 0, 100);
+    }
+
+    function quantScores(r) {
+      const per = quantMetric(r.per, n => 100 - (n - 5) * 2.5);
+      const pbr = quantMetric(r.pbr, n => 100 - (n - .5) * 13);
+      const value = Math.round((per + pbr) / 2);
+      const roe = quantMetric(r.roe, n => 35 + n * 2.6);
+      const debt = quantMetric(r.debt, n => 100 - n * .48);
+      const quality = Math.round(roe * .6 + debt * .4);
+      const growth = quantMetric(r.epsGrowth, n => 50 + n * 1.25);
+      const rsi = Number(r.rsi || 50), bb = Number(r.bb || 50), day = Number(r.day || 0);
+      const trend = clamp(100 - Math.abs(rsi - 58) * 2.2, 15, 100);
+      const band = clamp(100 - Math.abs(bb - 65) * 1.35, 15, 100);
+      const daily = clamp(55 + day * 4, 15, 90);
+      const momentum = Math.round(trend * .45 + band * .35 + daily * .2);
+      const total = Math.round(value * .30 + quality * .25 + growth * .20 + momentum * .25);
+      return { total, value, quality, growth, momentum };
+    }
+
+    function renderQuant(items) {
+      const ranked = items.filter(x => !x.isCash).map(item => ({ item, score: quantScores(item) })).sort((a, b) => b.score.total - a.score.total);
+      const average = ranked.length ? Math.round(ranked.reduce((s, x) => s + x.score.total, 0) / ranked.length) : 0;
+      const top = ranked[0];
+      const strong = ranked.filter(x => x.score.total >= 70).length;
+      const caution = ranked.filter(x => x.score.total < 50).length;
+      document.getElementById("quantSummary").innerHTML = [
+        ["평균 퀀트 점수", `${average}점`], ["1위 종목", top ? top.item.name : "-"], ["우수 후보(70+)", `${strong}개`], ["점검 필요(<50)", `${caution}개`]
+      ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      document.getElementById("quantRows").innerHTML = ranked.map(({ item, score }, rank) => {
+        const i = rows.findIndex(r => normalizeTicker(r.ticker) === item.ticker);
+        const input = (key, value) => `<input data-i="${i}" data-k="${key}" type="number" step="0.1" value="${Number(value || 0)}">`;
+        return `<tr><td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.value}</td><td>${score.quality}</td><td>${score.growth}</td><td>${score.momentum}</td><td>${input("per", item.per)}</td><td>${input("pbr", item.pbr)}</td><td>${input("roe", item.roe)}</td><td>${input("debt", item.debt)}</td><td>${input("epsGrowth", item.epsGrowth)}</td></tr>`;
+      }).join("");
+    }
+
     function render(includeEditor = true) {
       rows = rows.map(r => ({ ...r, ticker: normalizeTicker(r.ticker) }));
       localStorage.setItem("portfolioRows", JSON.stringify(rows));
@@ -1013,6 +1086,7 @@
       renderSectors(sectorData);
       renderCards(items);
       renderDiagnosis(items, sectorData);
+      renderQuant(items);
       if (includeEditor) renderEditor();
       document.getElementById("toggleMask").textContent = maskMoney ? "금액 보이기" : "금액 가리기";
     }
@@ -1143,8 +1217,16 @@
       if (!input) return;
       const i = +input.dataset.i, key = input.dataset.k;
       rows[i][key] = input.dataset.format === "comma" ? parseNumber(input.value) : input.type === "number" ? +input.value : input.value;
+      if (input.closest(".quant-table")) {
+        queueSheetSave();
+        return;
+      }
       render(false);
       queueSheetSave();
+    });
+
+    document.addEventListener("change", e => {
+      if (e.target.closest(".quant-table input[data-i]")) render(false);
     });
 
     document.addEventListener("blur", e => {
