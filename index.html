@@ -522,6 +522,7 @@
       <button class="tab-button active" data-view="dashboardView">대시보드</button>
       <button class="tab-button" data-view="aiView">AI 포트폴리오 진단</button>
       <button class="tab-button" data-view="quantView">퀀트 분석</button>
+      <button class="tab-button" data-view="kospiView">코스피200 TOP20</button>
     </nav>
 
     <div class="view" id="dashboardView">
@@ -628,6 +629,20 @@
         <div class="quant-note">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%. 누락 지표는 가중치에서 제외하며 신뢰도에 반영합니다. ETF는 기업과 분리합니다. 퀀트 점수는 비교·점검용이며 매수 신호가 아닙니다.</div>
       </section>
     </section>
+
+    <section class="view" id="kospiView" hidden>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>코스피200 퀀트 TOP20</h2><div class="hint" id="kospiProgress">분석 전 · 결과는 이 PC에 이어서 저장됩니다.</div></div>
+          <button class="primary" id="scanKospi200">분석 시작</button>
+        </div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>안정성</th><th>신뢰도</th><th>PER</th><th>PBR</th><th>ROE</th><th>부채</th><th>EPS성장</th><th>6개월</th><th>12-1개월</th><th>변동성</th><th>MDD</th></tr></thead>
+          <tbody id="kospiRows"></tbody>
+        </table></div>
+        <div class="quant-note">신뢰도 80% 이상만 순위에 포함합니다. 전체 200종목 분석은 수 분 걸릴 수 있으며 중단 후 다시 누르면 이어서 진행합니다.</div>
+      </section>
+    </section>
   </main>
 
   <script src="portfolio-config.js"></script>
@@ -645,6 +660,7 @@
     let syncReady = false;
     let syncTimer = null;
     let jsonpSeq = 0;
+    let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
 
     const defaultConfig = window.PORTFOLIO_CONFIG || {};
     const savedConfig = JSON.parse(localStorage.getItem("portfolioGoogleConfig") || "{}");
@@ -713,7 +729,7 @@
       return Boolean(googleConfig.appsScriptUrl && googleConfig.sheetId);
     }
 
-    function jsonpRequest(params) {
+    function jsonpRequest(params, timeoutMs = 12000) {
       return new Promise((resolve, reject) => {
         if (!hasGoogleConfig()) return reject(new Error("Google Sheets 설정이 없습니다"));
         const callback = `portfolioJsonp${Date.now()}${jsonpSeq++}`;
@@ -725,7 +741,7 @@
         const timer = setTimeout(() => {
           cleanup();
           reject(new Error("Google Sheets 응답 시간이 초과되었습니다"));
-        }, 12000);
+        }, timeoutMs);
         function cleanup() {
           clearTimeout(timer);
           delete window[callback];
@@ -1100,6 +1116,50 @@
       }).join("") + (etfs.length ? `<tr><td colspan="18"><strong>ETF 별도 분석</strong> · ${etfs.map(x => `${x.name} (${x.ticker})`).join(", ")} — 기업 재무비율 순위에서 제외</td></tr>` : "");
     }
 
+    function renderKospi200() {
+      const ranked = kospiScan.rows
+        .filter(item => !item.error)
+        .map(item => ({ item, score: quantScores(item) }))
+        .filter(x => x.score.confidence >= 80)
+        .sort((a, b) => b.score.total - a.score.total)
+        .slice(0, 20);
+      const show = value => value === null ? "-" : value;
+      document.getElementById("kospiRows").innerHTML = ranked.map(({ item, score }, rank) => `<tr>
+        <td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td>
+        <td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${show(score.value)}</td><td>${show(score.quality)}</td><td>${show(score.growth)}</td><td>${show(score.momentum)}</td><td>${show(score.stability)}</td><td>${score.confidence}%</td>
+        <td>${Number(item.per || 0).toFixed(2)}</td><td>${Number(item.pbr || 0).toFixed(2)}</td><td>${Number(item.roe || 0).toFixed(2)}</td><td>${Number(item.debt || 0).toFixed(2)}</td><td>${Number(item.epsGrowth || 0).toFixed(2)}</td>
+        <td>${Number(item.mom6 || 0).toFixed(1)}</td><td>${Number(item.mom12 || 0).toFixed(1)}</td><td>${Number(item.volatility || 0).toFixed(1)}</td><td>${Number(item.mdd || 0).toFixed(1)}</td></tr>`).join("");
+      const failed = kospiScan.rows.filter(item => item.error).length;
+      document.getElementById("kospiProgress").textContent = `${kospiScan.rows.length}/${kospiScan.total || 200}종목 분석 · 유효 ${kospiScan.rows.length - failed} · TOP ${ranked.length}`;
+      document.getElementById("scanKospi200").textContent = kospiScan.running ? "분석 중…" : kospiScan.next >= kospiScan.total ? "다시 분석" : kospiScan.next ? "이어 분석" : "분석 시작";
+    }
+
+    async function scanKospi200() {
+      if (kospiScan.running) return;
+      if (kospiScan.next >= kospiScan.total) kospiScan = { rows: [], next: 0, total: 200, running: false };
+      kospiScan.running = true;
+      renderKospi200();
+      try {
+        while (kospiScan.next < kospiScan.total) {
+          const payload = await jsonpRequest({ action: "kospi200Batch", start: kospiScan.next, count: 5 }, 60000);
+          if (!payload || !payload.ok) throw new Error(payload && payload.error || "코스피200 응답 오류");
+          kospiScan.rows.push(...(payload.rows || []));
+          kospiScan.next = payload.next;
+          kospiScan.total = payload.total;
+          localStorage.setItem("kospi200Scan", JSON.stringify({ ...kospiScan, running: false }));
+          renderKospi200();
+          if (payload.done) break;
+        }
+      } catch (error) {
+        console.warn("KOSPI200 scan failed", error);
+        document.getElementById("kospiProgress").textContent = `${kospiScan.next}/${kospiScan.total}에서 일시 중단 · 다시 누르면 이어집니다`;
+      } finally {
+        kospiScan.running = false;
+        localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
+        renderKospi200();
+      }
+    }
+
     function render(includeEditor = true) {
       rows = rows.map(r => ({
         ...r,
@@ -1121,6 +1181,7 @@
       renderCards(items);
       renderDiagnosis(items, sectorData);
       renderQuant(items);
+      renderKospi200();
       if (includeEditor) renderEditor();
       document.getElementById("toggleMask").textContent = maskMoney ? "금액 보이기" : "금액 가리기";
     }
@@ -1408,6 +1469,7 @@
     });
     document.getElementById("toggleMask").addEventListener("click", () => { maskMoney = !maskMoney; render(); });
     document.getElementById("refreshMarket").addEventListener("click", refreshMarket);
+    document.getElementById("scanKospi200").addEventListener("click", scanKospi200);
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
     document.getElementById("toggleSettings").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
