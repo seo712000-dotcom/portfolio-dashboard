@@ -455,6 +455,9 @@
     .quant-table input { min-width: 76px; }
     .quant-table tr:first-child td { background: rgba(73,211,209,.045); }
     .quant-note { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .risk-pass { color: var(--green); font-weight: 800; }
+    .risk-fail { color: var(--red); font-weight: 800; }
+    .review-panel { margin-bottom: 14px; border-color: rgba(73,211,209,.42); }
 
     @media (max-width: 1120px) {
       .summary { grid-template-columns: repeat(3, 1fr); }
@@ -631,6 +634,15 @@
     </section>
 
     <section class="view" id="kospiView" hidden>
+      <section class="quant-summary" id="reviewSummary"></section>
+      <section class="panel review-panel">
+        <div class="panel-head"><div><h2>투자검토 TOP10</h2><div class="hint">종합 70+ · 신뢰도 80%+ · 안정성 40+ · MDD -35% 이내 · 과열 제외</div></div></div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>안정성</th><th>MDD</th><th>6개월</th><th>12-1개월</th><th>판정</th></tr></thead>
+          <tbody id="reviewRows"></tbody>
+        </table></div>
+        <div class="quant-note" id="reviewRejected">분석 완료 후 위험 필터 탈락 사유가 표시됩니다.</div>
+      </section>
       <section class="panel">
         <div class="panel-head">
           <div><h2>코스피200 퀀트 TOP20</h2><div class="hint" id="kospiProgress">분석 전 · 결과는 이 PC에 이어서 저장됩니다.</div></div>
@@ -1117,12 +1129,11 @@
     }
 
     function renderKospi200() {
-      const ranked = kospiScan.rows
+      const scored = kospiScan.rows
         .filter(item => !item.error)
         .map(item => ({ item, score: quantScores(item) }))
-        .filter(x => x.score.confidence >= 80)
-        .sort((a, b) => b.score.total - a.score.total)
-        .slice(0, 20);
+        .sort((a, b) => b.score.total - a.score.total);
+      const ranked = scored.filter(x => x.score.confidence >= 80).slice(0, 20);
       const show = value => value === null ? "-" : value;
       document.getElementById("kospiRows").innerHTML = ranked.map(({ item, score }, rank) => `<tr>
         <td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td>
@@ -1132,6 +1143,35 @@
       const failed = kospiScan.rows.filter(item => item.error).length;
       document.getElementById("kospiProgress").textContent = `${kospiScan.rows.length}/${kospiScan.total || 200}종목 분석 · 유효 ${kospiScan.rows.length - failed} · TOP ${ranked.length}`;
       document.getElementById("scanKospi200").textContent = kospiScan.running ? "분석 중…" : kospiScan.next >= kospiScan.total ? "다시 분석" : kospiScan.next ? "이어 분석" : "분석 시작";
+      renderInvestmentReview(scored);
+    }
+
+    function reviewReasons(item, score) {
+      const reasons = [];
+      if (score.total < 70) reasons.push("종합 70점 미만");
+      if (score.confidence < 80) reasons.push("데이터 부족");
+      if ((score.stability ?? 0) < 40) reasons.push("안정성 부족");
+      if (Number(item.mdd || 0) < -35) reasons.push("낙폭 위험");
+      if (Number(item.mom6 || 0) > 100 || Number(item.mom12 || 0) > 200) reasons.push("과열");
+      const factorFloor = [score.value, score.quality, score.growth].filter(v => v !== null);
+      if (factorFloor.some(v => v < 30)) reasons.push("핵심 팩터 취약");
+      return [...new Set(reasons)];
+    }
+
+    function renderInvestmentReview(scored) {
+      const evaluated = scored.map(x => ({ ...x, reasons: reviewReasons(x.item, x.score) }));
+      const candidates = evaluated.filter(x => !x.reasons.length).slice(0, 10);
+      const overheat = evaluated.filter(x => x.reasons.includes("과열")).length;
+      const unstable = evaluated.filter(x => x.reasons.includes("안정성 부족") || x.reasons.includes("낙폭 위험")).length;
+      const average = candidates.length ? Math.round(candidates.reduce((sum, x) => sum + x.score.total, 0) / candidates.length) : 0;
+      document.getElementById("reviewSummary").innerHTML = [
+        ["투자검토 통과", `${candidates.length}개`], ["후보 평균점수", `${average}점`], ["과열 제외", `${overheat}개`], ["위험 제외", `${unstable}개`]
+      ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      document.getElementById("reviewRows").innerHTML = candidates.length ? candidates.map(({ item, score }, rank) => `<tr>
+        <td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td>
+        <td>${score.stability}</td><td>${Number(item.mdd || 0).toFixed(1)}%</td><td>${Number(item.mom6 || 0).toFixed(1)}%</td><td>${Number(item.mom12 || 0).toFixed(1)}%</td><td class="risk-pass">조건 통과</td></tr>`).join("") : `<tr><td colspan="8">현재 조건을 모두 통과한 종목이 없습니다.</td></tr>`;
+      const rejected = evaluated.filter(x => x.reasons.length && x.score.total >= 70).slice(0, 8);
+      document.getElementById("reviewRejected").innerHTML = rejected.length ? `<strong>고득점 탈락:</strong> ${rejected.map(x => `${x.item.name} — <span class="risk-fail">${x.reasons.join("·")}</span>`).join(" / ")}` : "고득점 위험 탈락 종목이 없습니다.";
     }
 
     async function scanKospi200() {
