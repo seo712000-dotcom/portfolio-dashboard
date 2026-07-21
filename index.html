@@ -621,11 +621,11 @@
         </div>
         <div class="table-wrap">
           <table class="quant-table">
-            <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>PER</th><th>PBR</th><th>ROE %</th><th>부채비율 %</th><th>EPS 성장 %</th></tr></thead>
+            <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>안정성</th><th>신뢰도</th><th>PER</th><th>PBR</th><th>ROE %</th><th>부채비율 %</th><th>EPS 성장 %</th><th>6개월 %</th><th>12-1개월 %</th><th>변동성 %</th><th>MDD %</th></tr></thead>
             <tbody id="quantRows"></tbody>
           </table>
         </div>
-        <div class="quant-note">재무지표는 최근 확정 실적 기준으로 직접 입력하세요. 빈 값은 중립점수(50점)로 처리합니다. 퀀트 점수는 비교·점검용이며 매수 신호가 아닙니다.</div>
+        <div class="quant-note">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%. 누락 지표는 가중치에서 제외하며 신뢰도에 반영합니다. ETF는 기업과 분리합니다. 퀀트 점수는 비교·점검용이며 매수 신호가 아닙니다.</div>
       </section>
     </section>
   </main>
@@ -696,7 +696,11 @@
           pbr: saneMetric(r.pbr, 0, 100),
           roe: saneMetric(r.roe, -500, 500),
           debt: saneMetric(r.debt, 0, 5000),
-          epsGrowth: saneMetric(r.epsGrowth, -10000, 10000)
+          epsGrowth: saneMetric(r.epsGrowth, -10000, 10000),
+          mom6: saneMetric(r.mom6, -100, 10000),
+          mom12: saneMetric(r.mom12, -100, 10000),
+          volatility: saneMetric(r.volatility, 0, 1000),
+          mdd: saneMetric(r.mdd, -100, 0)
         }));
     }
 
@@ -1042,42 +1046,58 @@
       `).join("");
     }
 
-    function quantMetric(value, scorer) {
+    function metricScore(value, scorer) {
       const n = Number(value);
-      return !Number.isFinite(n) || n === 0 ? 50 : clamp(Math.round(scorer(n)), 0, 100);
+      return !Number.isFinite(n) || n === 0 ? null : clamp(Math.round(scorer(n)), 0, 100);
+    }
+
+    function weightedAvailable(parts) {
+      const available = parts.filter(x => x.score !== null);
+      if (!available.length) return null;
+      return Math.round(available.reduce((sum, x) => sum + x.score * x.weight, 0) / available.reduce((sum, x) => sum + x.weight, 0));
+    }
+
+    function isEtf(r) {
+      return /(^|\s)(ETF|ETN)($|\s)/i.test(String(r.sector || "")) || /^(KODEX|TIGER|RISE|ACE|SOL|HANARO|PLUS|KOSEF|TIMEFOLIO|KBSTAR|ARIRANG)/i.test(String(r.name || "").replace(/\s/g, ""));
     }
 
     function quantScores(r) {
-      const per = quantMetric(r.per, n => 100 - (n - 5) * 2.5);
-      const pbr = quantMetric(r.pbr, n => 100 - (n - .5) * 13);
-      const value = Math.round((per + pbr) / 2);
-      const roe = quantMetric(r.roe, n => 35 + n * 2.6);
-      const debt = quantMetric(r.debt, n => 100 - n * .48);
-      const quality = Math.round(roe * .6 + debt * .4);
-      const growth = quantMetric(r.epsGrowth, n => 50 + n * 1.25);
-      const rsi = Number(r.rsi || 50), bb = Number(r.bb || 50), day = Number(r.day || 0);
-      const trend = clamp(100 - Math.abs(rsi - 58) * 2.2, 15, 100);
-      const band = clamp(100 - Math.abs(bb - 65) * 1.35, 15, 100);
-      const daily = clamp(55 + day * 4, 15, 90);
-      const momentum = Math.round(trend * .45 + band * .35 + daily * .2);
-      const total = Math.round(value * .30 + quality * .25 + growth * .20 + momentum * .25);
-      return { total, value, quality, growth, momentum };
+      const metrics = {
+        per: metricScore(r.per, n => 100 - (n - 5) * 2.5), pbr: metricScore(r.pbr, n => 100 - (n - .5) * 13),
+        roe: metricScore(r.roe, n => 35 + n * 2.6), debt: metricScore(r.debt, n => 100 - n * .48),
+        epsGrowth: metricScore(r.epsGrowth, n => 50 + n * 1.25),
+        mom6: metricScore(r.mom6, n => 50 + n * 1.5), mom12: metricScore(r.mom12, n => 50 + n),
+        volatility: metricScore(r.volatility, n => 100 - (n - 10) * 2.5), mdd: metricScore(r.mdd, n => 100 + n * 2)
+      };
+      const value = weightedAvailable([{ score: metrics.per, weight: 1 }, { score: metrics.pbr, weight: 1 }]);
+      const quality = weightedAvailable([{ score: metrics.roe, weight: .6 }, { score: metrics.debt, weight: .4 }]);
+      const growth = metrics.epsGrowth;
+      const momentum = weightedAvailable([{ score: metrics.mom6, weight: .45 }, { score: metrics.mom12, weight: .55 }]);
+      const stability = weightedAvailable([{ score: metrics.volatility, weight: .5 }, { score: metrics.mdd, weight: .5 }]);
+      const categories = [{ score: value, weight: 25 }, { score: quality, weight: 25 }, { score: growth, weight: 20 }, { score: momentum, weight: 20 }, { score: stability, weight: 10 }];
+      const total = weightedAvailable(categories);
+      const available = Object.values(metrics).filter(v => v !== null).length;
+      const confidence = Math.round(available / Object.keys(metrics).length * 100);
+      return { total: total ?? 0, value, quality, growth, momentum, stability, confidence };
     }
 
     function renderQuant(items) {
-      const ranked = items.filter(x => !x.isCash).map(item => ({ item, score: quantScores(item) })).sort((a, b) => b.score.total - a.score.total);
+      const stocks = items.filter(x => !x.isCash && !isEtf(x));
+      const etfs = items.filter(x => !x.isCash && isEtf(x));
+      const ranked = stocks.map(item => ({ item, score: quantScores(item) })).sort((a, b) => b.score.total - a.score.total);
       const average = ranked.length ? Math.round(ranked.reduce((s, x) => s + x.score.total, 0) / ranked.length) : 0;
       const top = ranked[0];
-      const strong = ranked.filter(x => x.score.total >= 70).length;
-      const caution = ranked.filter(x => x.score.total < 50).length;
+      const reliable = ranked.filter(x => x.score.confidence >= 80).length;
       document.getElementById("quantSummary").innerHTML = [
-        ["평균 퀀트 점수", `${average}점`], ["1위 종목", top ? top.item.name : "-"], ["우수 후보(70+)", `${strong}개`], ["점검 필요(<50)", `${caution}개`]
+        ["평균 퀀트 점수", `${average}점`], ["1위 종목", top ? top.item.name : "-"], ["신뢰도 80%+", `${reliable}개`], ["ETF 별도", `${etfs.length}개`]
       ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
       document.getElementById("quantRows").innerHTML = ranked.map(({ item, score }, rank) => {
         const i = rows.findIndex(r => normalizeTicker(r.ticker) === item.ticker);
         const input = (key, value) => `<input data-i="${i}" data-k="${key}" type="number" step="0.1" value="${Number(value || 0)}">`;
-        return `<tr><td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.value}</td><td>${score.quality}</td><td>${score.growth}</td><td>${score.momentum}</td><td>${input("per", item.per)}</td><td>${input("pbr", item.pbr)}</td><td>${input("roe", item.roe)}</td><td>${input("debt", item.debt)}</td><td>${input("epsGrowth", item.epsGrowth)}</td></tr>`;
-      }).join("");
+        const show = v => v === null ? "-" : v;
+        const confidenceLabel = score.confidence >= 80 ? "높음" : score.confidence >= 60 ? "보통" : "낮음";
+        return `<tr><td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${show(score.value)}</td><td>${show(score.quality)}</td><td>${show(score.growth)}</td><td>${show(score.momentum)}</td><td>${show(score.stability)}</td><td>${score.confidence}%<br><span class="hint">${confidenceLabel}</span></td><td>${input("per", item.per)}</td><td>${input("pbr", item.pbr)}</td><td>${input("roe", item.roe)}</td><td>${input("debt", item.debt)}</td><td>${input("epsGrowth", item.epsGrowth)}</td><td>${Number(item.mom6 || 0).toFixed(1)}</td><td>${Number(item.mom12 || 0).toFixed(1)}</td><td>${Number(item.volatility || 0).toFixed(1)}</td><td>${Number(item.mdd || 0).toFixed(1)}</td></tr>`;
+      }).join("") + (etfs.length ? `<tr><td colspan="18"><strong>ETF 별도 분석</strong> · ${etfs.map(x => `${x.name} (${x.ticker})`).join(", ")} — 기업 재무비율 순위에서 제외</td></tr>` : "");
     }
 
     function render(includeEditor = true) {
@@ -1088,7 +1108,9 @@
         pbr: saneMetric(r.pbr, 0, 100),
         roe: saneMetric(r.roe, -500, 500),
         debt: saneMetric(r.debt, 0, 5000),
-        epsGrowth: saneMetric(r.epsGrowth, -10000, 10000)
+        epsGrowth: saneMetric(r.epsGrowth, -10000, 10000),
+        mom6: saneMetric(r.mom6, -100, 10000), mom12: saneMetric(r.mom12, -100, 10000),
+        volatility: saneMetric(r.volatility, 0, 1000), mdd: saneMetric(r.mdd, -100, 0)
       }));
       localStorage.setItem("portfolioRows", JSON.stringify(rows));
       const items = enriched();
@@ -1127,6 +1149,33 @@
       const sd = Math.sqrt(slice.reduce((s, v) => s + (v - mean) ** 2, 0) / slice.length);
       const lower = mean - mult * sd, upper = mean + mult * sd;
       return upper === lower ? 50 : (closes.at(-1) - lower) / (upper - lower) * 100;
+    }
+
+    function calcReturn(closes, days, skipRecent = 0) {
+      const endIndex = closes.length - 1 - skipRecent;
+      const startIndex = endIndex - days;
+      if (startIndex < 0 || !closes[startIndex] || !closes[endIndex]) return null;
+      return (closes[endIndex] / closes[startIndex] - 1) * 100;
+    }
+
+    function calcVolatility(closes, days = 252) {
+      const slice = closes.slice(-(days + 1));
+      if (slice.length < 61) return null;
+      const returns = slice.slice(1).map((v, i) => v / slice[i] - 1).filter(Number.isFinite);
+      const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((sum, v) => sum + (v - mean) ** 2, 0) / returns.length;
+      return Math.sqrt(variance) * Math.sqrt(252) * 100;
+    }
+
+    function calcMaxDrawdown(closes, days = 252) {
+      const slice = closes.slice(-days);
+      if (slice.length < 61) return null;
+      let peak = slice[0], mdd = 0;
+      slice.forEach(value => {
+        peak = Math.max(peak, value);
+        mdd = Math.min(mdd, (value / peak - 1) * 100);
+      });
+      return mdd;
     }
 
     async function fetchTextWithFallback(source, localPath = "") {
@@ -1260,7 +1309,7 @@
         const code = naverCode(row.ticker);
         const end = new Date();
         const start = new Date();
-        start.setMonth(start.getMonth() - 8);
+        start.setMonth(start.getMonth() - 15);
         const realtimeUrl = `https://polling.finance.naver.com/api/realtime/domestic/stock/${code}`;
         const historyUrl = `https://api.finance.naver.com/siseJson.naver?symbol=${code}&requestType=1&startTime=${compactDate(start)}&endTime=${compactDate(end)}&timeframe=day`;
         const [marketResult, fundamentalResult] = await Promise.allSettled([
@@ -1287,6 +1336,10 @@
         row.day = live && Number.isFinite(live.day) ? live.day : (closes.at(-1) - closes.at(-2)) / closes.at(-2) * 100;
         row.rsi = calcRsi(closes) ?? row.rsi;
         row.bb = calcBb(closes) ?? row.bb;
+        row.mom6 = calcReturn(closes, 126) ?? 0;
+        row.mom12 = calcReturn(closes, 231, 21) ?? 0;
+        row.volatility = calcVolatility(closes) ?? 0;
+        row.mdd = calcMaxDrawdown(closes) ?? 0;
       }));
       const refreshableCount = rows.filter(row => !isCash(row)).length;
       const ok = results.filter((r, i) => !isCash(rows[i]) && r.status === "fulfilled").length;
