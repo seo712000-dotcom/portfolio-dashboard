@@ -657,6 +657,10 @@
     const money = v => maskMoney ? "••••••" : `${nf.format(Math.round(v || 0))}원`;
     const comma = v => nf.format(Number(v || 0));
     const parseNumber = v => Number(String(v ?? "").replace(/,/g, "")) || 0;
+    const saneMetric = (v, min, max) => {
+      const n = Number(v);
+      return Number.isFinite(n) && n >= min && n <= max ? n : 0;
+    };
     const pct = v => `${Number(v || 0).toFixed(2)}%`;
     const cls = v => v > 0 ? "positive" : v < 0 ? "negative" : "neutral";
     const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
@@ -688,11 +692,11 @@
           day: Number(r.day || 0),
           rsi: Number(r.rsi || 0),
           bb: Number(r.bb || 0),
-          per: Number(r.per || 0),
-          pbr: Number(r.pbr || 0),
-          roe: Number(r.roe || 0),
-          debt: Number(r.debt || 0),
-          epsGrowth: Number(r.epsGrowth || 0)
+          per: saneMetric(r.per, -500, 500),
+          pbr: saneMetric(r.pbr, 0, 100),
+          roe: saneMetric(r.roe, -500, 500),
+          debt: saneMetric(r.debt, 0, 5000),
+          epsGrowth: saneMetric(r.epsGrowth, -10000, 10000)
         }));
     }
 
@@ -1077,7 +1081,15 @@
     }
 
     function render(includeEditor = true) {
-      rows = rows.map(r => ({ ...r, ticker: normalizeTicker(r.ticker) }));
+      rows = rows.map(r => ({
+        ...r,
+        ticker: normalizeTicker(r.ticker),
+        per: saneMetric(r.per, -500, 500),
+        pbr: saneMetric(r.pbr, 0, 100),
+        roe: saneMetric(r.roe, -500, 500),
+        debt: saneMetric(r.debt, 0, 5000),
+        epsGrowth: saneMetric(r.epsGrowth, -10000, 10000)
+      }));
       localStorage.setItem("portfolioRows", JSON.stringify(rows));
       const items = enriched();
       const sectorData = sectors(items);
@@ -1251,11 +1263,19 @@
         start.setMonth(start.getMonth() - 8);
         const realtimeUrl = `https://polling.finance.naver.com/api/realtime/domestic/stock/${code}`;
         const historyUrl = `https://api.finance.naver.com/siseJson.naver?symbol=${code}&requestType=1&startTime=${compactDate(start)}&endTime=${compactDate(end)}&timeframe=day`;
-        const [realtime, historyText, fundamentals] = await Promise.all([
-          fetchJsonWithFallback(realtimeUrl, `/api/realtime/${code}`),
-          fetchTextWithFallback(historyUrl, `/api/history/${code}?start=${compactDate(start)}&end=${compactDate(end)}`),
+        const [marketResult, fundamentalResult] = await Promise.allSettled([
+          Promise.all([
+            fetchJsonWithFallback(realtimeUrl, `/api/realtime/${code}`),
+            fetchTextWithFallback(historyUrl, `/api/history/${code}?start=${compactDate(start)}&end=${compactDate(end)}`)
+          ]),
           fetchFundamentalValues(code)
         ]);
+        if (fundamentalResult.status === "fulfilled" && applyFundamentalValues(row, fundamentalResult.value)) fundamentalCount += 1;
+        if (marketResult.status === "rejected") {
+          if (fundamentalResult.status === "rejected") throw marketResult.reason;
+          return;
+        }
+        const [realtime, historyText] = marketResult.value;
         const data = realtime.datas && realtime.datas[0];
         const history = parseNaverHistory(historyText);
         const closes = history.map(v => v.close).filter(v => Number.isFinite(v));
@@ -1267,7 +1287,6 @@
         row.day = live && Number.isFinite(live.day) ? live.day : (closes.at(-1) - closes.at(-2)) / closes.at(-2) * 100;
         row.rsi = calcRsi(closes) ?? row.rsi;
         row.bb = calcBb(closes) ?? row.bb;
-        if (applyFundamentalValues(row, fundamentals)) fundamentalCount += 1;
       }));
       const refreshableCount = rows.filter(row => !isCash(row)).length;
       const ok = results.filter((r, i) => !isCash(rows[i]) && r.status === "fulfilled").length;
