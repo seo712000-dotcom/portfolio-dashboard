@@ -458,6 +458,8 @@
     .risk-pass { color: var(--green); font-weight: 800; }
     .risk-fail { color: var(--red); font-weight: 800; }
     .review-panel { margin-bottom: 14px; border-color: rgba(73,211,209,.42); }
+    .leader-panel { margin-bottom: 14px; border-color: rgba(241,184,75,.5); }
+    .phase-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #273549; white-space: nowrap; font-weight: 800; }
 
     @media (max-width: 1120px) {
       .summary { grid-template-columns: repeat(3, 1fr); }
@@ -634,6 +636,14 @@
     </section>
 
     <section class="view" id="kospiView" hidden>
+      <section class="panel leader-panel">
+        <div class="panel-head"><div><h2>시장 주도주 TOP10</h2><div class="hint">코스피200 대비 상대강도 30% · 거래량 20% · 추세 20% · EPS 성장 20% · 위험관리 10%</div></div></div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>주도점수</th><th>국면</th><th>RS 1개월</th><th>RS 3개월</th><th>RS 6개월</th><th>거래량</th><th>20일 추세</th><th>60일 추세</th><th>EPS성장</th><th>안정성</th></tr></thead>
+          <tbody id="leaderRows"></tbody>
+        </table></div>
+        <div class="quant-note">RS는 KODEX200(069500)을 코스피200 대용 기준으로 사용한 초과수익률입니다. 과열 종목은 제외하지 않고 국면으로 표시합니다.</div>
+      </section>
       <section class="quant-summary" id="reviewSummary"></section>
       <section class="panel review-panel">
         <div class="panel-head"><div><h2>투자검토 TOP10</h2><div class="hint">종합 70+ · 신뢰도 80%+ · 안정성 40+ · MDD -35% 이내 · 과열 제외</div></div></div>
@@ -1128,6 +1138,46 @@
       }).join("") + (etfs.length ? `<tr><td colspan="18"><strong>ETF 별도 분석</strong> · ${etfs.map(x => `${x.name} (${x.ticker})`).join(", ")} — 기업 재무비율 순위에서 제외</td></tr>` : "");
     }
 
+    function leaderScore(item) {
+      const score = quantScores(item);
+      const rs = weightedAvailable([
+        { score: metricScore(item.rs1, n => 50 + n * 2), weight: .25 },
+        { score: metricScore(item.rs3, n => 50 + n * 1.2), weight: .35 },
+        { score: metricScore(item.rs6, n => 50 + n * .8), weight: .40 }
+      ]);
+      const volume = metricScore(item.volumeRatio, n => 50 + (n - 100) * .35);
+      const trend = weightedAvailable([
+        { score: metricScore(item.ma20Gap, n => 50 + n * 3), weight: .55 },
+        { score: metricScore(item.ma60Gap, n => 50 + n * 2), weight: .45 }
+      ]);
+      const growth = metricScore(item.epsGrowth, n => 50 + n * 1.25);
+      const risk = score.stability;
+      const total = weightedAvailable([{ score: rs, weight: 30 }, { score: volume, weight: 20 }, { score: trend, weight: 20 }, { score: growth, weight: 20 }, { score: risk, weight: 10 }]);
+      const available = [rs, volume, trend, growth, risk].filter(v => v !== null).length;
+      return { total: total ?? 0, rs, volume, trend, growth, risk, confidence: available / 5 * 100 };
+    }
+
+    function leadershipPhase(item) {
+      const rs1 = Number(item.rs1 || 0), rs3 = Number(item.rs3 || 0);
+      const ma20 = Number(item.ma20Gap || 0), ma60 = Number(item.ma60Gap || 0);
+      if (ma20 < 0 && rs1 < 0) return "추세 이탈";
+      if (Number(item.mom6 || 0) > 100 || rs3 > 50 || Number(item.volumeRatio || 0) > 250) return "과열 주의";
+      if (rs1 > 0 && rs3 > 0 && ma20 > 0 && ma60 > 0) return "상승 지속";
+      if (rs1 > 0 && ma20 > 0) return "초기 주도";
+      return "관찰";
+    }
+
+    function renderMarketLeaders(scored) {
+      const leaders = scored.map(x => ({ item: x.item, leader: leaderScore(x.item) }))
+        .filter(x => x.leader.confidence >= 80)
+        .sort((a, b) => b.leader.total - a.leader.total)
+        .slice(0, 10);
+      const fmt = value => Number(value || 0).toFixed(1);
+      document.getElementById("leaderRows").innerHTML = leaders.length ? leaders.map(({ item, leader }, rank) => `<tr>
+        <td>${rank + 1}</td><td><strong>${item.name}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(leader.total - 60)}">${leader.total}</span></td><td><span class="phase-badge">${leadershipPhase(item)}</span></td>
+        <td>${fmt(item.rs1)}%</td><td>${fmt(item.rs3)}%</td><td>${fmt(item.rs6)}%</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.epsGrowth)}%</td><td>${leader.risk ?? "-"}</td></tr>`).join("") : `<tr><td colspan="12">새 시장지표가 필요합니다. 아래의 다시 분석을 눌러주세요.</td></tr>`;
+    }
+
     function renderKospi200() {
       const scored = kospiScan.rows
         .filter(item => !item.error)
@@ -1144,6 +1194,7 @@
       document.getElementById("kospiProgress").textContent = `${kospiScan.rows.length}/${kospiScan.total || 200}종목 분석 · 유효 ${kospiScan.rows.length - failed} · TOP ${ranked.length}`;
       document.getElementById("scanKospi200").textContent = kospiScan.running ? "분석 중…" : kospiScan.next >= kospiScan.total ? "다시 분석" : kospiScan.next ? "이어 분석" : "분석 시작";
       renderInvestmentReview(scored);
+      renderMarketLeaders(scored);
     }
 
     function reviewReasons(item, score) {
