@@ -530,6 +530,7 @@
       <button class="tab-button" data-view="aiView">AI 포트폴리오 진단</button>
       <button class="tab-button" data-view="quantView">퀀트 분석</button>
       <button class="tab-button" data-view="kospiView">코스피200 TOP20</button>
+      <button class="tab-button" data-view="historyView">성과 검증</button>
     </nav>
 
     <div class="view" id="dashboardView">
@@ -667,6 +668,15 @@
         <div class="quant-note">신뢰도 80% 이상만 순위에 포함합니다. 전체 200종목 분석은 수 분 걸릴 수 있으며 중단 후 다시 누르면 이어서 진행합니다.</div>
       </section>
     </section>
+
+    <section class="view" id="historyView" hidden>
+      <section class="quant-summary" id="historySummary"></section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>전략 성과 검증</h2><div class="hint" id="historyStatus">분석 결과가 누적되면 1·3·6개월 성과가 표시됩니다.</div></div><button id="loadHistory">기록 불러오기</button></div>
+        <div class="table-wrap"><table><thead><tr><th>전략</th><th>기록 수</th><th>1개월 수익률</th><th>1개월 초과</th><th>3개월 수익률</th><th>3개월 초과</th><th>6개월 수익률</th><th>6개월 초과</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+        <div class="quant-note">기준지수는 KODEX200(069500)입니다. 첫 성과는 기록 후 약 1개월부터 계산됩니다.</div>
+      </section>
+    </section>
   </main>
 
   <script src="portfolio-config.js"></script>
@@ -685,6 +695,7 @@
     let syncTimer = null;
     let jsonpSeq = 0;
     let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
+    let historyRows = [];
 
     const defaultConfig = window.PORTFOLIO_CONFIG || {};
     const savedConfig = JSON.parse(localStorage.getItem("portfolioGoogleConfig") || "{}");
@@ -819,6 +830,12 @@
 
     function saveToGoogleSheetsNow() {
       if (!hasGoogleConfig() || !syncReady) return;
+      postSheetAction("save", { rows });
+      setSyncStatus(`Google Sheets 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
+    }
+
+    function postSheetAction(action, payload) {
+      if (!hasGoogleConfig()) return;
       const iframeName = "sheetSaveFrame";
       let iframe = document.querySelector(`iframe[name="${iframeName}"]`);
       if (!iframe) {
@@ -833,9 +850,9 @@
       form.target = iframeName;
       form.style.display = "none";
       const fields = {
-        action: "save",
+        action,
         sheetId: googleConfig.sheetId,
-        payload: JSON.stringify({ rows })
+        payload: JSON.stringify(payload)
       };
       Object.entries(fields).forEach(([name, value]) => {
         const input = document.createElement("input");
@@ -846,7 +863,6 @@
       document.body.appendChild(form);
       form.submit();
       form.remove();
-      setSyncStatus(`Google Sheets 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
     }
 
     function queueSheetSave() {
@@ -1250,6 +1266,7 @@
           renderKospi200();
           if (payload.done) break;
         }
+        if (kospiScan.next >= kospiScan.total) saveQuantSnapshot();
       } catch (error) {
         console.warn("KOSPI200 scan failed", error);
         document.getElementById("kospiProgress").textContent = `${kospiScan.next}/${kospiScan.total}에서 일시 중단 · 다시 누르면 이어집니다`;
@@ -1258,6 +1275,61 @@
         localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
         renderKospi200();
       }
+    }
+
+    function strategySelections() {
+      const scored = kospiScan.rows.filter(item => !item.error).map(item => ({ item, score: quantScores(item), leader: leaderScore(item) }));
+      const stable = scored.filter(x => !reviewReasons(x.item, x.score).length).sort((a, b) => b.score.total - a.score.total).slice(0, 10)
+        .map((x, i) => ({ strategy: "stable", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.score.total, phase: "조건 통과", price: x.item.price }));
+      const leaders = scored.filter(x => x.leader.confidence >= 80).sort((a, b) => b.leader.total - a.leader.total).slice(0, 10)
+        .map((x, i) => ({ strategy: "leader", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.leader.total, phase: leadershipPhase(x.item), price: x.item.price }));
+      const hybrid = scored.filter(x => x.score.confidence >= 80 && x.leader.confidence >= 80)
+        .map(x => ({ ...x, hybridScore: Math.round(x.score.total * .5 + x.leader.total * .5) }))
+        .sort((a, b) => b.hybridScore - a.hybridScore).slice(0, 10)
+        .map((x, i) => ({ strategy: "hybrid", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.hybridScore, phase: leadershipPhase(x.item), price: x.item.price }));
+      return [...stable, ...leaders, ...hybrid];
+    }
+
+    function saveQuantSnapshot() {
+      const selections = strategySelections();
+      const prices = kospiScan.rows.filter(item => item.ticker && item.price).map(item => ({ ticker: item.ticker, price: item.price }));
+      const benchmarkPrice = Number((kospiScan.rows.find(item => item.benchmarkPrice) || {}).benchmarkPrice || 0);
+      if (!selections.length || !benchmarkPrice) {
+        console.warn("snapshot skipped: missing selections or benchmark");
+        return;
+      }
+      postSheetAction("snapshot", { selections, prices, benchmarkPrice });
+      setSyncStatus(`퀀트 이력 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
+    }
+
+    async function loadPerformanceHistory() {
+      try {
+        document.getElementById("historyStatus").textContent = "Google Sheets 기록 불러오는 중…";
+        const payload = await jsonpRequest({ action: "history" }, 20000);
+        if (!payload || !payload.ok) throw new Error(payload && payload.error || "기록 불러오기 실패");
+        historyRows = payload.rows || [];
+        renderPerformanceHistory();
+      } catch (error) {
+        console.warn("history load failed", error);
+        document.getElementById("historyStatus").textContent = "성과 기록을 불러오지 못했습니다.";
+      }
+    }
+
+    function renderPerformanceHistory() {
+      const strategies = [{ key: "stable", label: "안정형 TOP10" }, { key: "leader", label: "시장 주도주 TOP10" }, { key: "hybrid", label: "혼합형 TOP10" }];
+      const average = (items, key) => {
+        const values = items.map(item => item[key]).filter(value => value !== "" && value != null && Number.isFinite(Number(value))).map(Number);
+        return values.length ? `${(values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)}% (${values.length})` : "대기";
+      };
+      document.getElementById("historyRows").innerHTML = strategies.map(strategy => {
+        const items = historyRows.filter(item => item.strategy === strategy.key);
+        return `<tr><td><strong>${strategy.label}</strong></td><td>${items.length}</td><td>${average(items, "ret1m")}</td><td>${average(items, "excess1m")}</td><td>${average(items, "ret3m")}</td><td>${average(items, "excess3m")}</td><td>${average(items, "ret6m")}</td><td>${average(items, "excess6m")}</td></tr>`;
+      }).join("");
+      const dates = [...new Set(historyRows.map(item => String(item.date).slice(0, 10)))];
+      const completed = historyRows.filter(item => item.ret1m !== "" && item.ret1m != null).length;
+      document.getElementById("historySummary").innerHTML = [["누적 기록일", `${dates.length}일`], ["저장 종목", `${historyRows.length}건`], ["1개월 검증 완료", `${completed}건`], ["다음 검증", dates.length ? "약 1개월 후" : "분석 필요"]]
+        .map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      document.getElementById("historyStatus").textContent = dates.length ? `최근 기록 ${dates.at(-1)} · 결과는 분석할 때마다 갱신됩니다.` : "저장된 점수 기록이 없습니다. 코스피200을 다시 분석하세요.";
     }
 
     function render(includeEditor = true) {
@@ -1570,6 +1642,7 @@
     document.getElementById("toggleMask").addEventListener("click", () => { maskMoney = !maskMoney; render(); });
     document.getElementById("refreshMarket").addEventListener("click", refreshMarket);
     document.getElementById("scanKospi200").addEventListener("click", scanKospi200);
+    document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
     document.getElementById("toggleSettings").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
@@ -1599,6 +1672,7 @@
         document.querySelectorAll(".tab-button").forEach(x => x.classList.toggle("active", x === button));
         document.querySelectorAll(".view").forEach(view => view.hidden = view.id !== button.dataset.view);
         if (button.dataset.view === "aiView") render(false);
+        if (button.dataset.view === "historyView") loadPerformanceHistory();
       });
     });
 
