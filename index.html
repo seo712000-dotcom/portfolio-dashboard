@@ -616,7 +616,7 @@
         <div class="panel-head">
           <div>
             <h2>보유 종목 퀀트 순위</h2>
-            <div class="hint">가치 30% · 품질 25% · 성장 20% · 모멘텀 25%</div>
+            <div class="hint">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%</div>
           </div>
         </div>
         <div class="table-wrap">
@@ -1272,7 +1272,7 @@
 
     function applyFundamentalValues(row, values) {
       let updated = false;
-      ["per", "pbr", "roe", "debt", "epsGrowth"].forEach(key => {
+      ["per", "pbr", "roe", "debt", "epsGrowth", "mom6", "mom12", "volatility", "mdd"].forEach(key => {
         const value = values[key];
         if (value != null && Number.isFinite(value)) {
           row[key] = Math.round(value * 100) / 100;
