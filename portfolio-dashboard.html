@@ -449,14 +449,50 @@
     }
     .mini { width: 42px; padding: 0; }
     .status { margin-left: auto; color: var(--muted); font-size: 12px; }
+    .quant-summary { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .quant-score { font-weight: 900; font-size: 18px; }
+    .score-badge { display: inline-grid; place-items: center; min-width: 52px; padding: 5px 9px; border-radius: 999px; background: #1d2a39; border: 1px solid #3f5064; font-weight: 900; }
+    .quant-table input { min-width: 76px; }
+    .quant-table tr:first-child td { background: rgba(73,211,209,.045); }
+    .quant-note { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .risk-pass { color: var(--green); font-weight: 800; }
+    .risk-fail { color: var(--red); font-weight: 800; }
+    .review-panel { margin-bottom: 14px; border-color: rgba(73,211,209,.42); }
+    .leader-panel { margin-bottom: 14px; border-color: rgba(241,184,75,.5); }
+    .phase-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #273549; white-space: nowrap; font-weight: 800; }
+    .stock-link { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(105,167,255,.72); }
+    .stock-link:hover { color: var(--blue); border-bottom-style: solid; }
+    .ledger-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr); gap: 14px; margin-bottom: 14px; }
+    .ledger-chart { min-height: 300px; display: grid; align-items: center; }
+    .ledger-chart svg { display: block; width: 100%; height: 270px; overflow: visible; }
+    .chart-grid { stroke: rgba(255,255,255,.08); stroke-width: 1; }
+    .chart-line { fill: none; stroke: var(--cyan); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+    .chart-area { fill: url(#ledgerArea); opacity: .3; }
+    .chart-dot { fill: var(--cyan); stroke: #071015; stroke-width: 2; }
+    .chart-label { fill: var(--muted); font-size: 11px; }
+    .allocation { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; align-items: center; }
+    .allocation-donut { width: 170px; aspect-ratio: 1; border-radius: 50%; position: relative; background: #182331; }
+    .allocation-donut::after { content: ""; position: absolute; inset: 28%; border-radius: 50%; background: var(--panel); border: 1px solid rgba(255,255,255,.08); }
+    .allocation-list { display: grid; gap: 8px; }
+    .allocation-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 12px; }
+    .allocation-swatch { width: 10px; height: 10px; border-radius: 3px; }
+    .ledger-month-bars { display: grid; gap: 10px; }
+    .month-row { display: grid; grid-template-columns: 72px minmax(120px, 1fr) 72px; gap: 10px; align-items: center; font-size: 12px; }
+    .month-track { height: 14px; position: relative; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .month-fill { position: absolute; left: 50%; height: 100%; border-radius: 999px; }
+    .month-fill.positive { background: var(--green); }
+    .month-fill.negative { background: var(--red); transform: translateX(-100%); }
+    .ledger-empty { min-height: 180px; display: grid; place-items: center; color: var(--muted); text-align: center; line-height: 1.6; }
 
     @media (max-width: 1120px) {
       .summary { grid-template-columns: repeat(3, 1fr); }
       .main-grid { grid-template-columns: 1fr; }
       .stock-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .ai-layout { grid-template-columns: 1fr; }
+      .quant-summary { grid-template-columns: repeat(2, 1fr); }
       .treemap { height: auto; min-height: 0; grid-template-columns: repeat(2, 1fr); }
       .sector-box { grid-column: span 1 !important; grid-row: span 1 !important; min-height: 220px; }
+      .ledger-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
       .app { padding: 12px; }
@@ -468,6 +504,9 @@
       .summary, .stock-grid, .treemap { grid-template-columns: 1fr; }
       .top-tabs { width: 100%; }
       .tab-button { flex: 1 1 0; }
+      .top-tabs { overflow-x: auto; }
+      .tab-button { min-width: max-content; }
+      .quant-summary { grid-template-columns: 1fr 1fr; }
       .diagnosis-grid { grid-template-columns: 1fr; }
       .summary-card { min-height: 78px; }
       .sector-box { min-height: 180px; }
@@ -476,6 +515,8 @@
       table { min-width: 760px; }
       th, td { padding: 6px; font-size: 12px; }
       td input { min-height: 34px; padding: 0 7px; }
+      .allocation { grid-template-columns: 1fr; justify-items: center; }
+      .allocation-list { width: 100%; }
     }
   </style>
 </head>
@@ -511,6 +552,10 @@
     <nav class="top-tabs" aria-label="상단 보기 전환">
       <button class="tab-button active" data-view="dashboardView">대시보드</button>
       <button class="tab-button" data-view="aiView">AI 포트폴리오 진단</button>
+      <button class="tab-button" data-view="quantView">퀀트 분석</button>
+      <button class="tab-button" data-view="kospiView">코스피200 TOP20</button>
+      <button class="tab-button" data-view="historyView">성과 검증</button>
+      <button class="tab-button" data-view="ledgerView">자산원장</button>
     </nav>
 
     <div class="view" id="dashboardView">
@@ -598,16 +643,106 @@
         <textarea class="prompt-box" id="aiPrompt" readonly></textarea>
       </section>
     </section>
+
+    <section class="view" id="quantView" hidden>
+      <section class="quant-summary" id="quantSummary"></section>
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>보유 종목 퀀트 순위</h2>
+            <div class="hint">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="quant-table">
+            <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>안정성</th><th>신뢰도</th><th>PER</th><th>PBR</th><th>ROE %</th><th>부채비율 %</th><th>EPS 성장 %</th><th>6개월 %</th><th>12-1개월 %</th><th>변동성 %</th><th>MDD %</th></tr></thead>
+            <tbody id="quantRows"></tbody>
+          </table>
+        </div>
+        <div class="quant-note">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%. 누락 지표는 가중치에서 제외하며 신뢰도에 반영합니다. ETF는 기업과 분리합니다. 퀀트 점수는 비교·점검용이며 매수 신호가 아닙니다.</div>
+      </section>
+    </section>
+
+    <section class="view" id="kospiView" hidden>
+      <section class="panel leader-panel">
+        <div class="panel-head"><div><h2>시장 주도주 TOP10</h2><div class="hint">코스피200 대비 상대강도 30% · 거래량 20% · 추세 20% · EPS 성장 20% · 위험관리 10%</div></div></div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>주도점수</th><th>국면</th><th>RS 1개월</th><th>RS 3개월</th><th>RS 6개월</th><th>거래량</th><th>20일 추세</th><th>60일 추세</th><th>EPS성장</th><th>안정성</th></tr></thead>
+          <tbody id="leaderRows"></tbody>
+        </table></div>
+        <div class="quant-note">RS는 KODEX200(069500)을 코스피200 대용 기준으로 사용한 초과수익률입니다. 과열 종목은 제외하지 않고 국면으로 표시합니다.</div>
+      </section>
+      <section class="quant-summary" id="reviewSummary"></section>
+      <section class="panel review-panel">
+        <div class="panel-head"><div><h2>투자검토 TOP10</h2><div class="hint">종합 70+ · 신뢰도 80%+ · 안정성 40+ · MDD -35% 이내 · 과열 제외</div></div></div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>안정성</th><th>MDD</th><th>6개월</th><th>12-1개월</th><th>판정</th></tr></thead>
+          <tbody id="reviewRows"></tbody>
+        </table></div>
+        <div class="quant-note" id="reviewRejected">분석 완료 후 위험 필터 탈락 사유가 표시됩니다.</div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>코스피200 퀀트 TOP20</h2><div class="hint" id="kospiProgress">분석 전 · 결과는 이 PC에 이어서 저장됩니다.</div></div>
+          <button class="primary" id="scanKospi200">분석 시작</button>
+        </div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>안정성</th><th>신뢰도</th><th>PER</th><th>PBR</th><th>ROE</th><th>부채</th><th>EPS성장</th><th>6개월</th><th>12-1개월</th><th>변동성</th><th>MDD</th></tr></thead>
+          <tbody id="kospiRows"></tbody>
+        </table></div>
+        <div class="quant-note">신뢰도 80% 이상만 순위에 포함합니다. 전체 200종목 분석은 수 분 걸릴 수 있으며 중단 후 다시 누르면 이어서 진행합니다.</div>
+      </section>
+    </section>
+
+    <section class="view" id="historyView" hidden>
+      <section class="quant-summary" id="historySummary"></section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>전략 성과 검증</h2><div class="hint" id="historyStatus">분석 결과가 누적되면 1·3·6개월 성과가 표시됩니다.</div></div><button id="loadHistory">기록 불러오기</button></div>
+        <div class="table-wrap"><table><thead><tr><th>전략</th><th>기록 수</th><th>1개월 수익률</th><th>1개월 초과</th><th>3개월 수익률</th><th>3개월 초과</th><th>6개월 수익률</th><th>6개월 초과</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+        <div class="quant-note">기준지수는 KODEX200(069500)입니다. 첫 성과는 기록 후 약 1개월부터 계산됩니다.</div>
+      </section>
+    </section>
+
+    <section class="view" id="ledgerView" hidden>
+      <section class="quant-summary" id="ledgerSummary"></section>
+      <section class="ledger-grid">
+        <section class="panel">
+          <div class="panel-head">
+            <div><h2>일별 자산 변화</h2><div class="hint" id="ledgerStatus">원장 데이터를 불러오면 표시됩니다.</div></div>
+            <button id="loadLedger" class="primary">원장 새로고침</button>
+          </div>
+          <div class="ledger-chart" id="ledgerDailyChart"></div>
+        </section>
+        <aside class="panel">
+          <div class="panel-head"><h2>현재 보유 비중</h2><div class="hint">평가금액 기준</div></div>
+          <div class="allocation" id="ledgerAllocation"></div>
+        </aside>
+      </section>
+      <section class="ledger-grid">
+        <section class="panel">
+          <div class="panel-head"><h2>월별 누적수익률</h2><div class="hint">각 월 마지막 영업일 기준</div></div>
+          <div class="ledger-month-bars" id="ledgerMonthly"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>최근 보유 변경</h2><div class="hint">매수·매도·평단 변경</div></div>
+          <div class="table-wrap"><table><thead><tr><th>날짜</th><th>변경 내용</th></tr></thead><tbody id="ledgerChanges"></tbody></table></div>
+        </section>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>일별 수익률 기록</h2><div class="hint">Google 원장 수익률 탭과 동기화</div></div>
+        <div class="table-wrap"><table><thead><tr><th>날짜</th><th>총자산</th><th>투자원금</th><th>누적손익</th><th>누적수익률</th><th>일일수익률</th><th>보유변경</th></tr></thead><tbody id="ledgerDailyRows"></tbody></table></div>
+      </section>
+    </section>
   </main>
 
   <script src="portfolio-config.js"></script>
   <script>
     const sectorColors = ["#49d3d1", "#69a7ff", "#b68cff", "#f1b84b", "#18c779", "#ff8b5c", "#e36bff", "#8de36b"];
     const sample = [
-      { ticker: "005930.KS", name: "삼성전자", sector: "AI Megacap+", avg: 237867, qty: 15, price: 332000, day: -3.21, rsi: 61.6, bb: 80.2 },
-      { ticker: "011070.KS", name: "LG이노텍", sector: "AI 인프라", avg: 813500, qty: 4, price: 1201000, day: -2.83, rsi: 63.6, bb: 68.4 },
-      { ticker: "007660.KS", name: "이수페타시스", sector: "AI 인프라", avg: 115200, qty: 9, price: 121400, day: -1.30, rsi: 47.9, bb: 42.8 },
-      { ticker: "086520.KQ", name: "에코프로", sector: "2차전지", avg: 50015, qty: 6, price: 123700, day: 0.90, rsi: 45.6, bb: 44.3 }
+      { ticker: "005930.KS", name: "삼성전자", sector: "AI Megacap+", avg: 237867, qty: 15, price: 332000, day: -3.21, rsi: 61.6, bb: 80.2, per: 18, pbr: 1.7, roe: 10, debt: 28, epsGrowth: 22 },
+      { ticker: "011070.KS", name: "LG이노텍", sector: "AI 인프라", avg: 813500, qty: 4, price: 1201000, day: -2.83, rsi: 63.6, bb: 68.4, per: 16, pbr: 1.5, roe: 12, debt: 95, epsGrowth: 18 },
+      { ticker: "007660.KS", name: "이수페타시스", sector: "AI 인프라", avg: 115200, qty: 9, price: 121400, day: -1.30, rsi: 47.9, bb: 42.8, per: 28, pbr: 6.2, roe: 21, debt: 72, epsGrowth: 35 },
+      { ticker: "086520.KQ", name: "에코프로", sector: "2차전지", avg: 50015, qty: 6, price: 123700, day: 0.90, rsi: 45.6, bb: 44.3, per: 0, pbr: 2.1, roe: 3, debt: 88, epsGrowth: -15 }
     ];
 
     let rows = JSON.parse(localStorage.getItem("portfolioRows") || "null") || structuredClone(sample);
@@ -615,6 +750,9 @@
     let syncReady = false;
     let syncTimer = null;
     let jsonpSeq = 0;
+    let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
+    let historyRows = [];
+    let assetLedger = { daily: [], holdings: [], monthly: [], updatedAt: "" };
 
     const defaultConfig = window.PORTFOLIO_CONFIG || {};
     const savedConfig = JSON.parse(localStorage.getItem("portfolioGoogleConfig") || "{}");
@@ -627,6 +765,10 @@
     const money = v => maskMoney ? "••••••" : `${nf.format(Math.round(v || 0))}원`;
     const comma = v => nf.format(Number(v || 0));
     const parseNumber = v => Number(String(v ?? "").replace(/,/g, "")) || 0;
+    const saneMetric = (v, min, max) => {
+      const n = Number(v);
+      return Number.isFinite(n) && n >= min && n <= max ? n : 0;
+    };
     const pct = v => `${Number(v || 0).toFixed(2)}%`;
     const cls = v => v > 0 ? "positive" : v < 0 ? "negative" : "neutral";
     const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
@@ -644,6 +786,13 @@
       return String(ticker || "").trim().toUpperCase().replace("KRX:", "").replace("KOSDAQ:", "").replace(/\.(KS|KQ)$/, "");
     }
 
+    function stockLink(item, label = item.name) {
+      if (!item || isCash(item)) return String(label || "-");
+      const code = naverCode(item.ticker || item.code);
+      if (!/^\d{6}$/.test(code)) return String(label || "-");
+      return `<a class="stock-link" href="https://finance.naver.com/item/main.naver?code=${code}" target="_blank" rel="noopener noreferrer" title="네이버 증권에서 ${label} 차트 열기">${label}</a>`;
+    }
+
     function cleanSheetRows(data) {
       if (!Array.isArray(data)) return [];
       return data
@@ -657,7 +806,16 @@
           price: parseNumber(r.price),
           day: Number(r.day || 0),
           rsi: Number(r.rsi || 0),
-          bb: Number(r.bb || 0)
+          bb: Number(r.bb || 0),
+          per: saneMetric(r.per, -500, 500),
+          pbr: saneMetric(r.pbr, 0, 100),
+          roe: saneMetric(r.roe, -500, 500),
+          debt: saneMetric(r.debt, 0, 5000),
+          epsGrowth: saneMetric(r.epsGrowth, -10000, 10000),
+          mom6: saneMetric(r.mom6, -100, 10000),
+          mom12: saneMetric(r.mom12, -100, 10000),
+          volatility: saneMetric(r.volatility, 0, 1000),
+          mdd: saneMetric(r.mdd, -100, 0)
         }));
     }
 
@@ -670,7 +828,7 @@
       return Boolean(googleConfig.appsScriptUrl && googleConfig.sheetId);
     }
 
-    function jsonpRequest(params) {
+    function jsonpRequest(params, timeoutMs = 12000) {
       return new Promise((resolve, reject) => {
         if (!hasGoogleConfig()) return reject(new Error("Google Sheets 설정이 없습니다"));
         const callback = `portfolioJsonp${Date.now()}${jsonpSeq++}`;
@@ -682,7 +840,7 @@
         const timer = setTimeout(() => {
           cleanup();
           reject(new Error("Google Sheets 응답 시간이 초과되었습니다"));
-        }, 12000);
+        }, timeoutMs);
         function cleanup() {
           clearTimeout(timer);
           delete window[callback];
@@ -729,6 +887,12 @@
 
     function saveToGoogleSheetsNow() {
       if (!hasGoogleConfig() || !syncReady) return;
+      postSheetAction("save", { rows });
+      setSyncStatus(`Google Sheets 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
+    }
+
+    function postSheetAction(action, payload) {
+      if (!hasGoogleConfig()) return;
       const iframeName = "sheetSaveFrame";
       let iframe = document.querySelector(`iframe[name="${iframeName}"]`);
       if (!iframe) {
@@ -743,9 +907,9 @@
       form.target = iframeName;
       form.style.display = "none";
       const fields = {
-        action: "save",
+        action,
         sheetId: googleConfig.sheetId,
-        payload: JSON.stringify({ rows })
+        payload: JSON.stringify(payload)
       };
       Object.entries(fields).forEach(([name, value]) => {
         const input = document.createElement("input");
@@ -756,7 +920,6 @@
       document.body.appendChild(form);
       form.submit();
       form.remove();
-      setSyncStatus(`Google Sheets 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
     }
 
     function queueSheetSave() {
@@ -868,7 +1031,7 @@
       document.getElementById("stockGrid").innerHTML = items.map(item => `
         <article class="stock-card">
           <div class="stock-top">
-            <div class="ticker-name"><strong>${item.ticker.replace(/\.(KS|KQ)/, "")}</strong><span>${item.name}</span></div>
+            <div class="ticker-name"><strong>${item.ticker.replace(/\.(KS|KQ)/, "")}</strong><span>${stockLink(item)}</span></div>
             <span class="pill">${item.sector || "미분류"}</span>
           </div>
           <div class="metrics">
@@ -1003,8 +1166,402 @@
       `).join("");
     }
 
+    function metricScore(value, scorer) {
+      const n = Number(value);
+      return !Number.isFinite(n) || n === 0 ? null : clamp(Math.round(scorer(n)), 0, 100);
+    }
+
+    function weightedAvailable(parts) {
+      const available = parts.filter(x => x.score !== null);
+      if (!available.length) return null;
+      return Math.round(available.reduce((sum, x) => sum + x.score * x.weight, 0) / available.reduce((sum, x) => sum + x.weight, 0));
+    }
+
+    function isEtf(r) {
+      return /(^|\s)(ETF|ETN)($|\s)/i.test(String(r.sector || "")) || /^(KODEX|TIGER|RISE|ACE|SOL|HANARO|PLUS|KOSEF|TIMEFOLIO|KBSTAR|ARIRANG)/i.test(String(r.name || "").replace(/\s/g, ""));
+    }
+
+    function quantScores(r) {
+      const metrics = {
+        per: metricScore(r.per, n => 100 - (n - 5) * 2.5), pbr: metricScore(r.pbr, n => 100 - (n - .5) * 13),
+        roe: metricScore(r.roe, n => 35 + n * 2.6), debt: metricScore(r.debt, n => 100 - n * .48),
+        epsGrowth: metricScore(r.epsGrowth, n => 50 + n * 1.25),
+        mom6: metricScore(r.mom6, n => 50 + n * 1.5), mom12: metricScore(r.mom12, n => 50 + n),
+        volatility: metricScore(r.volatility, n => 100 - (n - 10) * 2.5), mdd: metricScore(r.mdd, n => 100 + n * 2)
+      };
+      const value = weightedAvailable([{ score: metrics.per, weight: 1 }, { score: metrics.pbr, weight: 1 }]);
+      const quality = weightedAvailable([{ score: metrics.roe, weight: .6 }, { score: metrics.debt, weight: .4 }]);
+      const growth = metrics.epsGrowth;
+      const momentum = weightedAvailable([{ score: metrics.mom6, weight: .45 }, { score: metrics.mom12, weight: .55 }]);
+      const stability = weightedAvailable([{ score: metrics.volatility, weight: .5 }, { score: metrics.mdd, weight: .5 }]);
+      const categories = [{ score: value, weight: 25 }, { score: quality, weight: 25 }, { score: growth, weight: 20 }, { score: momentum, weight: 20 }, { score: stability, weight: 10 }];
+      const total = weightedAvailable(categories);
+      const available = Object.values(metrics).filter(v => v !== null).length;
+      const confidence = Math.round(available / Object.keys(metrics).length * 100);
+      return { total: total ?? 0, value, quality, growth, momentum, stability, confidence };
+    }
+
+    function renderQuant(items) {
+      const stocks = items.filter(x => !x.isCash && !isEtf(x));
+      const etfs = items.filter(x => !x.isCash && isEtf(x));
+      const ranked = stocks.map(item => ({ item, score: quantScores(item) })).sort((a, b) => b.score.total - a.score.total);
+      const average = ranked.length ? Math.round(ranked.reduce((s, x) => s + x.score.total, 0) / ranked.length) : 0;
+      const top = ranked[0];
+      const reliable = ranked.filter(x => x.score.confidence >= 80).length;
+      document.getElementById("quantSummary").innerHTML = [
+        ["평균 퀀트 점수", `${average}점`], ["1위 종목", top ? top.item.name : "-"], ["신뢰도 80%+", `${reliable}개`], ["ETF 별도", `${etfs.length}개`]
+      ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      document.getElementById("quantRows").innerHTML = ranked.map(({ item, score }, rank) => {
+        const i = rows.findIndex(r => normalizeTicker(r.ticker) === item.ticker);
+        const input = (key, value) => `<input data-i="${i}" data-k="${key}" type="number" step="0.1" value="${Number(value || 0)}">`;
+        const show = v => v === null ? "-" : v;
+        const confidenceLabel = score.confidence >= 80 ? "높음" : score.confidence >= 60 ? "보통" : "낮음";
+        return `<tr><td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${show(score.value)}</td><td>${show(score.quality)}</td><td>${show(score.growth)}</td><td>${show(score.momentum)}</td><td>${show(score.stability)}</td><td>${score.confidence}%<br><span class="hint">${confidenceLabel}</span></td><td>${input("per", item.per)}</td><td>${input("pbr", item.pbr)}</td><td>${input("roe", item.roe)}</td><td>${input("debt", item.debt)}</td><td>${input("epsGrowth", item.epsGrowth)}</td><td>${Number(item.mom6 || 0).toFixed(1)}</td><td>${Number(item.mom12 || 0).toFixed(1)}</td><td>${Number(item.volatility || 0).toFixed(1)}</td><td>${Number(item.mdd || 0).toFixed(1)}</td></tr>`;
+      }).join("") + (etfs.length ? `<tr><td colspan="18"><strong>ETF 별도 분석</strong> · ${etfs.map(x => `${x.name} (${x.ticker})`).join(", ")} — 기업 재무비율 순위에서 제외</td></tr>` : "");
+    }
+
+    function leaderScore(item) {
+      const score = quantScores(item);
+      const rs = weightedAvailable([
+        { score: metricScore(item.rs1, n => 50 + n * 2), weight: .25 },
+        { score: metricScore(item.rs3, n => 50 + n * 1.2), weight: .35 },
+        { score: metricScore(item.rs6, n => 50 + n * .8), weight: .40 }
+      ]);
+      const volume = metricScore(item.volumeRatio, n => 50 + (n - 100) * .35);
+      const trend = weightedAvailable([
+        { score: metricScore(item.ma20Gap, n => 50 + n * 3), weight: .55 },
+        { score: metricScore(item.ma60Gap, n => 50 + n * 2), weight: .45 }
+      ]);
+      const growth = metricScore(item.epsGrowth, n => 50 + n * 1.25);
+      const risk = score.stability;
+      const total = weightedAvailable([{ score: rs, weight: 30 }, { score: volume, weight: 20 }, { score: trend, weight: 20 }, { score: growth, weight: 20 }, { score: risk, weight: 10 }]);
+      const available = [rs, volume, trend, growth, risk].filter(v => v !== null).length;
+      return { total: total ?? 0, rs, volume, trend, growth, risk, confidence: available / 5 * 100 };
+    }
+
+    function leadershipPhase(item) {
+      const rs1 = Number(item.rs1 || 0), rs3 = Number(item.rs3 || 0);
+      const ma20 = Number(item.ma20Gap || 0), ma60 = Number(item.ma60Gap || 0);
+      if (ma20 < 0 && rs1 < 0) return "추세 이탈";
+      if (Number(item.mom6 || 0) > 100 || rs3 > 50 || Number(item.volumeRatio || 0) > 250) return "과열 주의";
+      if (rs1 > 0 && rs3 > 0 && ma20 > 0 && ma60 > 0) return "상승 지속";
+      if (rs1 > 0 && ma20 > 0) return "초기 주도";
+      return "관찰";
+    }
+
+    function renderMarketLeaders(scored) {
+      const leaders = scored.map(x => ({ item: x.item, leader: leaderScore(x.item) }))
+        .filter(x => x.leader.confidence >= 80)
+        .sort((a, b) => b.leader.total - a.leader.total)
+        .slice(0, 10);
+      const fmt = value => Number(value || 0).toFixed(1);
+      document.getElementById("leaderRows").innerHTML = leaders.length ? leaders.map(({ item, leader }, rank) => `<tr>
+        <td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(leader.total - 60)}">${leader.total}</span></td><td><span class="phase-badge">${leadershipPhase(item)}</span></td>
+        <td>${fmt(item.rs1)}%</td><td>${fmt(item.rs3)}%</td><td>${fmt(item.rs6)}%</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.epsGrowth)}%</td><td>${leader.risk ?? "-"}</td></tr>`).join("") : `<tr><td colspan="12">새 시장지표가 필요합니다. 아래의 다시 분석을 눌러주세요.</td></tr>`;
+    }
+
+    function renderKospi200() {
+      const scored = kospiScan.rows
+        .filter(item => !item.error)
+        .map(item => ({ item, score: quantScores(item) }))
+        .sort((a, b) => b.score.total - a.score.total);
+      const ranked = scored.filter(x => x.score.confidence >= 80).slice(0, 20);
+      const show = value => value === null ? "-" : value;
+      document.getElementById("kospiRows").innerHTML = ranked.map(({ item, score }, rank) => `<tr>
+        <td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td>
+        <td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${show(score.value)}</td><td>${show(score.quality)}</td><td>${show(score.growth)}</td><td>${show(score.momentum)}</td><td>${show(score.stability)}</td><td>${score.confidence}%</td>
+        <td>${Number(item.per || 0).toFixed(2)}</td><td>${Number(item.pbr || 0).toFixed(2)}</td><td>${Number(item.roe || 0).toFixed(2)}</td><td>${Number(item.debt || 0).toFixed(2)}</td><td>${Number(item.epsGrowth || 0).toFixed(2)}</td>
+        <td>${Number(item.mom6 || 0).toFixed(1)}</td><td>${Number(item.mom12 || 0).toFixed(1)}</td><td>${Number(item.volatility || 0).toFixed(1)}</td><td>${Number(item.mdd || 0).toFixed(1)}</td></tr>`).join("");
+      const failed = kospiScan.rows.filter(item => item.error).length;
+      document.getElementById("kospiProgress").textContent = `${kospiScan.rows.length}/${kospiScan.total || 200}종목 분석 · 유효 ${kospiScan.rows.length - failed} · TOP ${ranked.length}`;
+      document.getElementById("scanKospi200").textContent = kospiScan.running ? "분석 중…" : kospiScan.next >= kospiScan.total ? "다시 분석" : kospiScan.next ? "이어 분석" : "분석 시작";
+      renderInvestmentReview(scored);
+      renderMarketLeaders(scored);
+    }
+
+    function reviewReasons(item, score) {
+      const reasons = [];
+      if (score.total < 70) reasons.push("종합 70점 미만");
+      if (score.confidence < 80) reasons.push("데이터 부족");
+      if ((score.stability ?? 0) < 40) reasons.push("안정성 부족");
+      if (Number(item.mdd || 0) < -35) reasons.push("낙폭 위험");
+      if (Number(item.mom6 || 0) > 100 || Number(item.mom12 || 0) > 200) reasons.push("과열");
+      const factorFloor = [score.value, score.quality, score.growth].filter(v => v !== null);
+      if (factorFloor.some(v => v < 30)) reasons.push("핵심 팩터 취약");
+      return [...new Set(reasons)];
+    }
+
+    function renderInvestmentReview(scored) {
+      const evaluated = scored.map(x => ({ ...x, reasons: reviewReasons(x.item, x.score) }));
+      const candidates = evaluated.filter(x => !x.reasons.length).slice(0, 10);
+      const overheat = evaluated.filter(x => x.reasons.includes("과열")).length;
+      const unstable = evaluated.filter(x => x.reasons.includes("안정성 부족") || x.reasons.includes("낙폭 위험")).length;
+      const average = candidates.length ? Math.round(candidates.reduce((sum, x) => sum + x.score.total, 0) / candidates.length) : 0;
+      document.getElementById("reviewSummary").innerHTML = [
+        ["투자검토 통과", `${candidates.length}개`], ["후보 평균점수", `${average}점`], ["과열 제외", `${overheat}개`], ["위험 제외", `${unstable}개`]
+      ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      document.getElementById("reviewRows").innerHTML = candidates.length ? candidates.map(({ item, score }, rank) => `<tr>
+        <td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td>
+        <td>${score.stability}</td><td>${Number(item.mdd || 0).toFixed(1)}%</td><td>${Number(item.mom6 || 0).toFixed(1)}%</td><td>${Number(item.mom12 || 0).toFixed(1)}%</td><td class="risk-pass">조건 통과</td></tr>`).join("") : `<tr><td colspan="8">현재 조건을 모두 통과한 종목이 없습니다.</td></tr>`;
+      const rejected = evaluated.filter(x => x.reasons.length && x.score.total >= 70).slice(0, 8);
+      document.getElementById("reviewRejected").innerHTML = rejected.length ? `<strong>고득점 탈락:</strong> ${rejected.map(x => `${x.item.name} — <span class="risk-fail">${x.reasons.join("·")}</span>`).join(" / ")}` : "고득점 위험 탈락 종목이 없습니다.";
+    }
+
+    async function scanKospi200() {
+      if (kospiScan.running) return;
+      if (kospiScan.next >= kospiScan.total) kospiScan = { rows: [], next: 0, total: 200, running: false };
+      kospiScan.running = true;
+      renderKospi200();
+      try {
+        while (kospiScan.next < kospiScan.total) {
+          const payload = await jsonpRequest({ action: "kospi200Batch", start: kospiScan.next, count: 5 }, 60000);
+          if (!payload || !payload.ok) throw new Error(payload && payload.error || "코스피200 응답 오류");
+          kospiScan.rows.push(...(payload.rows || []));
+          kospiScan.next = payload.next;
+          kospiScan.total = payload.total;
+          localStorage.setItem("kospi200Scan", JSON.stringify({ ...kospiScan, running: false }));
+          renderKospi200();
+          if (payload.done) break;
+        }
+        if (kospiScan.next >= kospiScan.total) saveQuantSnapshot();
+      } catch (error) {
+        console.warn("KOSPI200 scan failed", error);
+        document.getElementById("kospiProgress").textContent = `${kospiScan.next}/${kospiScan.total}에서 일시 중단 · 다시 누르면 이어집니다`;
+      } finally {
+        kospiScan.running = false;
+        localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
+        renderKospi200();
+      }
+    }
+
+    function strategySelections() {
+      const scored = kospiScan.rows.filter(item => !item.error).map(item => ({ item, score: quantScores(item), leader: leaderScore(item) }));
+      const stable = scored.filter(x => !reviewReasons(x.item, x.score).length).sort((a, b) => b.score.total - a.score.total).slice(0, 10)
+        .map((x, i) => ({ strategy: "stable", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.score.total, phase: "조건 통과", price: x.item.price }));
+      const leaders = scored.filter(x => x.leader.confidence >= 80).sort((a, b) => b.leader.total - a.leader.total).slice(0, 10)
+        .map((x, i) => ({ strategy: "leader", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.leader.total, phase: leadershipPhase(x.item), price: x.item.price }));
+      const hybrid = scored.filter(x => x.score.confidence >= 80 && x.leader.confidence >= 80)
+        .map(x => ({ ...x, hybridScore: Math.round(x.score.total * .5 + x.leader.total * .5) }))
+        .sort((a, b) => b.hybridScore - a.hybridScore).slice(0, 10)
+        .map((x, i) => ({ strategy: "hybrid", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.hybridScore, phase: leadershipPhase(x.item), price: x.item.price }));
+      return [...stable, ...leaders, ...hybrid];
+    }
+
+    function saveQuantSnapshot() {
+      const selections = strategySelections();
+      const prices = kospiScan.rows.filter(item => item.ticker && item.price).map(item => ({ ticker: item.ticker, price: item.price }));
+      const benchmarkPrice = Number((kospiScan.rows.find(item => item.benchmarkPrice) || {}).benchmarkPrice || 0);
+      if (!selections.length || !benchmarkPrice) {
+        console.warn("snapshot skipped: missing selections or benchmark");
+        return;
+      }
+      postSheetAction("snapshot", { selections, prices, benchmarkPrice });
+      setSyncStatus(`퀀트 이력 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
+    }
+
+    async function loadPerformanceHistory() {
+      try {
+        document.getElementById("historyStatus").textContent = "Google Sheets 기록 불러오는 중…";
+        const payload = await jsonpRequest({ action: "history" }, 20000);
+        if (!payload || !payload.ok) throw new Error(payload && payload.error || "기록 불러오기 실패");
+        historyRows = payload.rows || [];
+        renderPerformanceHistory();
+      } catch (error) {
+        console.warn("history load failed", error);
+        document.getElementById("historyStatus").textContent = "성과 기록을 불러오지 못했습니다.";
+      }
+    }
+
+    function renderPerformanceHistory() {
+      const strategies = [{ key: "stable", label: "안정형 TOP10" }, { key: "leader", label: "시장 주도주 TOP10" }, { key: "hybrid", label: "혼합형 TOP10" }];
+      const average = (items, key) => {
+        const values = items.map(item => item[key]).filter(value => value !== "" && value != null && Number.isFinite(Number(value))).map(Number);
+        return values.length ? `${(values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)}% (${values.length})` : "대기";
+      };
+      document.getElementById("historyRows").innerHTML = strategies.map(strategy => {
+        const items = historyRows.filter(item => item.strategy === strategy.key);
+        return `<tr><td><strong>${strategy.label}</strong></td><td>${items.length}</td><td>${average(items, "ret1m")}</td><td>${average(items, "excess1m")}</td><td>${average(items, "ret3m")}</td><td>${average(items, "excess3m")}</td><td>${average(items, "ret6m")}</td><td>${average(items, "excess6m")}</td></tr>`;
+      }).join("");
+      const dates = [...new Set(historyRows.map(item => String(item.date).slice(0, 10)))];
+      const completed = historyRows.filter(item => item.ret1m !== "" && item.ret1m != null).length;
+      document.getElementById("historySummary").innerHTML = [["누적 기록일", `${dates.length}일`], ["저장 종목", `${historyRows.length}건`], ["1개월 검증 완료", `${completed}건`], ["다음 검증", dates.length ? "약 1개월 후" : "분석 필요"]]
+        .map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      document.getElementById("historyStatus").textContent = dates.length ? `최근 기록 ${dates.at(-1)} · 결과는 분석할 때마다 갱신됩니다.` : "저장된 점수 기록이 없습니다. 코스피200을 다시 분석하세요.";
+    }
+
+    async function loadAssetLedger() {
+      const status = document.getElementById("ledgerStatus");
+      try {
+        status.textContent = "Google 자산원장 불러오는 중…";
+        const payload = await jsonpRequest({ action: "assetLedger" }, 20000);
+        if (!payload || !payload.ok || !payload.ledger) throw new Error(payload && payload.error || "원장 불러오기 실패");
+        assetLedger = payload.ledger;
+        renderAssetLedger();
+      } catch (error) {
+        console.warn("asset ledger load failed", error);
+        status.textContent = "자산원장을 불러오지 못했습니다. Apps Script의 새 배포 여부를 확인하세요.";
+        document.getElementById("ledgerDailyChart").innerHTML = `<div class="ledger-empty">원장 데이터 연결에 실패했습니다.<br>잠시 후 새로고침해 주세요.</div>`;
+      }
+    }
+
+    function ledgerNumber(row, key) {
+      const value = row && row[key];
+      if (typeof value === "number") return value;
+      return parseNumber(value);
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[character]);
+    }
+
+    function renderAssetLedger() {
+      const daily = (assetLedger.daily || []).filter(row => row["1열"]);
+      const holdings = (assetLedger.holdings || []).filter(row => row["종목"] && ledgerNumber(row, "수량") > 0);
+      const monthly = (assetLedger.monthly || []).filter(row => row["기준월"]);
+      const latest = daily.at(-1) || {};
+      const current = assetLedger.current || {};
+      const totalAsset = current.totalAsset != null ? Number(current.totalAsset) : ledgerNumber(latest, "총 자산 평가금");
+      const principal = current.principal != null ? Number(current.principal) : ledgerNumber(latest, "투자 원금");
+      const profit = current.profit != null ? Number(current.profit) : ledgerNumber(latest, "누적 수익금");
+      const cumulative = current.returnRate != null ? Number(current.returnRate) : ledgerNumber(latest, "누적 수익률");
+      const dailyReturn = ledgerNumber(latest, "전일대비 수익률");
+      const dailyReturnText = latest["전일대비 수익률"] === "" || latest["전일대비 수익률"] == null
+        ? "기준일"
+        : `${(dailyReturn * 100).toFixed(2)}%`;
+
+      document.getElementById("ledgerSummary").innerHTML = [
+        ["총 평가금액", money(totalAsset), ""],
+        ["투자원금", money(principal), ""],
+        ["누적손익", money(profit), cls(profit)],
+        ["누적수익률", `${(cumulative * 100).toFixed(2)}%`, cls(cumulative)],
+        ["오늘 수익률", dailyReturnText, cls(dailyReturn)],
+        ["보유종목 수", `${current.holdingsCount != null ? current.holdingsCount : holdings.length}개`, ""]
+      ].map(([label, value, className]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score ${className}">${value}</strong></article>`).join("");
+
+      document.getElementById("ledgerStatus").textContent = daily.length
+        ? `최근 기록 ${latest["1열"]} · 원장 조회 ${assetLedger.updatedAt || ""}`
+        : "저장된 일별 기록이 없습니다.";
+      renderLedgerLineChart(daily);
+      renderLedgerAllocation(holdings);
+      renderLedgerMonthly(monthly);
+
+      const changes = daily.filter(row => {
+        const change = String(row["보유변경"] || "");
+        return change && change !== "변경 없음";
+      }).slice(-10).reverse();
+      document.getElementById("ledgerChanges").innerHTML = changes.length
+        ? changes.map(row => `<tr><td>${escapeHtml(row["1열"])}</td><td>${escapeHtml(row["보유변경"])}</td></tr>`).join("")
+        : `<tr><td colspan="2">기록된 보유 변경이 없습니다.</td></tr>`;
+
+      document.getElementById("ledgerDailyRows").innerHTML = daily.slice(-30).reverse().map(row => {
+        const cumulativeValue = ledgerNumber(row, "누적 수익률");
+        const dayValue = ledgerNumber(row, "전일대비 수익률");
+        const dayBlank = row["전일대비 수익률"] === "" || row["전일대비 수익률"] == null;
+        return `<tr>
+          <td>${escapeHtml(row["1열"])}</td>
+          <td>${money(ledgerNumber(row, "총 자산 평가금"))}</td>
+          <td>${money(ledgerNumber(row, "투자 원금"))}</td>
+          <td class="${cls(ledgerNumber(row, "누적 수익금"))}">${money(ledgerNumber(row, "누적 수익금"))}</td>
+          <td class="${cls(cumulativeValue)}">${(cumulativeValue * 100).toFixed(2)}%</td>
+          <td class="${cls(dayValue)}">${dayBlank ? "-" : `${(dayValue * 100).toFixed(2)}%`}</td>
+          <td>${escapeHtml(row["보유변경"] || "-")}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderLedgerLineChart(daily) {
+      const container = document.getElementById("ledgerDailyChart");
+      const points = daily.slice(-30).map(row => ({
+        date: String(row["1열"] || ""),
+        value: ledgerNumber(row, "총 자산 평가금")
+      })).filter(point => point.value > 0);
+      if (!points.length) {
+        container.innerHTML = `<div class="ledger-empty">일별 자산 기록이 없습니다.</div>`;
+        return;
+      }
+      const width = 760, height = 270, left = 64, right = 18, top = 18, bottom = 38;
+      const values = points.map(point => point.value);
+      let min = Math.min(...values), max = Math.max(...values);
+      if (min === max) { min *= .95; max *= 1.05; }
+      const range = max - min || 1;
+      const x = index => left + (points.length === 1 ? (width - left - right) / 2 : index * (width - left - right) / (points.length - 1));
+      const y = value => top + (max - value) / range * (height - top - bottom);
+      const coords = points.map((point, index) => [x(index), y(point.value)]);
+      const line = coords.map((point, index) => `${index ? "L" : "M"}${point[0].toFixed(1)},${point[1].toFixed(1)}`).join(" ");
+      const area = `${line} L${coords.at(-1)[0].toFixed(1)},${height - bottom} L${coords[0][0].toFixed(1)},${height - bottom} Z`;
+      const ticks = [0, .25, .5, .75, 1].map(ratio => {
+        const value = max - range * ratio;
+        const ty = y(value);
+        return `<line class="chart-grid" x1="${left}" y1="${ty}" x2="${width - right}" y2="${ty}"/><text class="chart-label" x="${left - 8}" y="${ty + 4}" text-anchor="end">${nf.format(Math.round(value / 10000))}만</text>`;
+      }).join("");
+      const labels = points.map((point, index) => {
+        if (index !== 0 && index !== points.length - 1 && index % Math.ceil(points.length / 5) !== 0) return "";
+        return `<text class="chart-label" x="${x(index)}" y="${height - 12}" text-anchor="middle">${escapeHtml(point.date.slice(5))}</text>`;
+      }).join("");
+      container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="일별 총자산 변화 차트">
+        <defs><linearGradient id="ledgerArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#49d3d1"/><stop offset="1" stop-color="#49d3d1" stop-opacity="0"/></linearGradient></defs>
+        ${ticks}<path class="chart-area" d="${area}"/><path class="chart-line" d="${line}"/>
+        ${coords.map(point => `<circle class="chart-dot" cx="${point[0]}" cy="${point[1]}" r="4"/>`).join("")}${labels}
+      </svg>`;
+    }
+
+    function renderLedgerAllocation(holdings) {
+      const container = document.getElementById("ledgerAllocation");
+      const items = holdings.map(row => ({
+        name: String(row["종목"] || ""),
+        ticker: String(row["티커"] || ""),
+        value: ledgerNumber(row, "수량") * ledgerNumber(row, "현재가")
+      })).filter(item => item.value > 0).sort((a, b) => b.value - a.value);
+      const total = items.reduce((sum, item) => sum + item.value, 0);
+      if (!items.length || !total) {
+        container.innerHTML = `<div class="ledger-empty">보유종목 평가금액이 없습니다.</div>`;
+        return;
+      }
+      let cursor = 0;
+      const segments = items.map((item, index) => {
+        const start = cursor;
+        cursor += item.value / total * 100;
+        return `${sectorColors[index % sectorColors.length]} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`;
+      });
+      container.innerHTML = `<div class="allocation-donut" style="background:conic-gradient(${segments.join(",")})"></div>
+        <div class="allocation-list">${items.map((item, index) => `<div class="allocation-row">
+          <span class="allocation-swatch" style="background:${sectorColors[index % sectorColors.length]}"></span>
+          <span>${stockLink({ ticker: item.ticker, name: item.name }, escapeHtml(item.name))}</span>
+          <strong>${(item.value / total * 100).toFixed(1)}%</strong>
+        </div>`).join("")}</div>`;
+    }
+
+    function renderLedgerMonthly(monthly) {
+      const container = document.getElementById("ledgerMonthly");
+      if (!monthly.length) {
+        container.innerHTML = `<div class="ledger-empty">월별 요약 기록이 없습니다.</div>`;
+        return;
+      }
+      const items = monthly.slice(-12).map(row => ({
+        month: String(row["기준월"] || "").slice(0, 7),
+        value: ledgerNumber(row, "누적 수익률")
+      }));
+      const maxAbs = Math.max(.01, ...items.map(item => Math.abs(item.value)));
+      container.innerHTML = items.map(item => {
+        const width = Math.min(50, Math.abs(item.value) / maxAbs * 50);
+        return `<div class="month-row"><span>${escapeHtml(item.month)}</span><div class="month-track"><span class="month-fill ${cls(item.value)}" style="width:${width}%"></span></div><strong class="${cls(item.value)}">${(item.value * 100).toFixed(2)}%</strong></div>`;
+      }).join("");
+    }
+
     function render(includeEditor = true) {
-      rows = rows.map(r => ({ ...r, ticker: normalizeTicker(r.ticker) }));
+      rows = rows.map(r => ({
+        ...r,
+        ticker: normalizeTicker(r.ticker),
+        per: saneMetric(r.per, -500, 500),
+        pbr: saneMetric(r.pbr, 0, 100),
+        roe: saneMetric(r.roe, -500, 500),
+        debt: saneMetric(r.debt, 0, 5000),
+        epsGrowth: saneMetric(r.epsGrowth, -10000, 10000),
+        mom6: saneMetric(r.mom6, -100, 10000), mom12: saneMetric(r.mom12, -100, 10000),
+        volatility: saneMetric(r.volatility, 0, 1000), mdd: saneMetric(r.mdd, -100, 0)
+      }));
       localStorage.setItem("portfolioRows", JSON.stringify(rows));
       const items = enriched();
       const sectorData = sectors(items);
@@ -1013,6 +1570,8 @@
       renderSectors(sectorData);
       renderCards(items);
       renderDiagnosis(items, sectorData);
+      renderQuant(items);
+      renderKospi200();
       if (includeEditor) renderEditor();
       document.getElementById("toggleMask").textContent = maskMoney ? "금액 보이기" : "금액 가리기";
     }
@@ -1041,6 +1600,33 @@
       const sd = Math.sqrt(slice.reduce((s, v) => s + (v - mean) ** 2, 0) / slice.length);
       const lower = mean - mult * sd, upper = mean + mult * sd;
       return upper === lower ? 50 : (closes.at(-1) - lower) / (upper - lower) * 100;
+    }
+
+    function calcReturn(closes, days, skipRecent = 0) {
+      const endIndex = closes.length - 1 - skipRecent;
+      const startIndex = endIndex - days;
+      if (startIndex < 0 || !closes[startIndex] || !closes[endIndex]) return null;
+      return (closes[endIndex] / closes[startIndex] - 1) * 100;
+    }
+
+    function calcVolatility(closes, days = 252) {
+      const slice = closes.slice(-(days + 1));
+      if (slice.length < 61) return null;
+      const returns = slice.slice(1).map((v, i) => v / slice[i] - 1).filter(Number.isFinite);
+      const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((sum, v) => sum + (v - mean) ** 2, 0) / returns.length;
+      return Math.sqrt(variance) * Math.sqrt(252) * 100;
+    }
+
+    function calcMaxDrawdown(closes, days = 252) {
+      const slice = closes.slice(-days);
+      if (slice.length < 61) return null;
+      let peak = slice[0], mdd = 0;
+      slice.forEach(value => {
+        peak = Math.max(peak, value);
+        mdd = Math.min(mdd, (value / peak - 1) * 100);
+      });
+      return mdd;
     }
 
     async function fetchTextWithFallback(source, localPath = "") {
@@ -1101,21 +1687,95 @@
       };
     }
 
+    function integrationFundamentals(data) {
+      const metricNumber = value => {
+        const cleaned = String(value ?? "").replace(/,/g, "").replace(/[^0-9.+-]/g, "");
+        const number = Number.parseFloat(cleaned);
+        return Number.isFinite(number) ? number : null;
+      };
+      const infos = new Map((data && data.totalInfos || []).map(info => [info.code, metricNumber(info.value)]));
+      return {
+        per: infos.get("per") || null,
+        pbr: infos.get("pbr") || null
+      };
+    }
+
+    function annualFundamentals(data) {
+      const info = data && data.financeInfo;
+      if (!info || !Array.isArray(info.trTitleList) || !Array.isArray(info.rowList)) return {};
+      const actualKeys = info.trTitleList
+        .filter(period => period.isConsensus !== "Y")
+        .map(period => period.key)
+        .sort();
+      const latest = actualKeys.at(-1), previous = actualKeys.at(-2);
+      if (!latest) return {};
+      const value = (title, key = latest) => {
+        const row = info.rowList.find(item => item.title === title);
+        return row && row.columns && row.columns[key] ? parseNumber(row.columns[key].value) : null;
+      };
+      const latestEps = value("EPS"), previousEps = previous ? value("EPS", previous) : null;
+      return {
+        roe: value("ROE"),
+        debt: value("부채비율"),
+        epsGrowth: latestEps != null && previousEps ? (latestEps - previousEps) / Math.abs(previousEps) * 100 : null
+      };
+    }
+
+    function applyFundamentalValues(row, values) {
+      let updated = false;
+      ["per", "pbr", "roe", "debt", "epsGrowth", "mom6", "mom12", "volatility", "mdd"].forEach(key => {
+        const value = values[key];
+        if (value != null && Number.isFinite(value)) {
+          row[key] = Math.round(value * 100) / 100;
+          updated = true;
+        }
+      });
+      return updated;
+    }
+
+    async function fetchFundamentalValues(code) {
+      if (hasGoogleConfig()) {
+        try {
+          const payload = await jsonpRequest({ action: "fundamentals", code });
+          if (payload && payload.ok && payload.fundamentals) return payload.fundamentals;
+        } catch (error) {
+          console.warn("Apps Script fundamentals failed", code, error);
+        }
+      }
+      const integrationUrl = `https://m.stock.naver.com/api/stock/${code}/integration`;
+      const financeUrl = `https://m.stock.naver.com/api/stock/${code}/finance/annual`;
+      const [integration, finance] = await Promise.all([
+        fetchJsonWithFallback(integrationUrl).catch(() => null),
+        fetchJsonWithFallback(financeUrl).catch(() => null)
+      ]);
+      return { ...integrationFundamentals(integration), ...annualFundamentals(finance) };
+    }
+
     async function refreshMarket() {
       const status = document.getElementById("status");
-      status.textContent = "네이버증권 데이터 갱신 중...";
+      status.textContent = "네이버 주가·재무정보 갱신 중...";
+      let fundamentalCount = 0;
       const results = await Promise.allSettled(rows.map(async row => {
         if (isCash(row)) return;
         const code = naverCode(row.ticker);
         const end = new Date();
         const start = new Date();
-        start.setMonth(start.getMonth() - 8);
+        start.setMonth(start.getMonth() - 15);
         const realtimeUrl = `https://polling.finance.naver.com/api/realtime/domestic/stock/${code}`;
         const historyUrl = `https://api.finance.naver.com/siseJson.naver?symbol=${code}&requestType=1&startTime=${compactDate(start)}&endTime=${compactDate(end)}&timeframe=day`;
-        const [realtime, historyText] = await Promise.all([
-          fetchJsonWithFallback(realtimeUrl, `/api/realtime/${code}`),
-          fetchTextWithFallback(historyUrl, `/api/history/${code}?start=${compactDate(start)}&end=${compactDate(end)}`)
+        const [marketResult, fundamentalResult] = await Promise.allSettled([
+          Promise.all([
+            fetchJsonWithFallback(realtimeUrl, `/api/realtime/${code}`),
+            fetchTextWithFallback(historyUrl, `/api/history/${code}?start=${compactDate(start)}&end=${compactDate(end)}`)
+          ]),
+          fetchFundamentalValues(code)
         ]);
+        if (fundamentalResult.status === "fulfilled" && applyFundamentalValues(row, fundamentalResult.value)) fundamentalCount += 1;
+        if (marketResult.status === "rejected") {
+          if (fundamentalResult.status === "rejected") throw marketResult.reason;
+          return;
+        }
+        const [realtime, historyText] = marketResult.value;
         const data = realtime.datas && realtime.datas[0];
         const history = parseNaverHistory(historyText);
         const closes = history.map(v => v.close).filter(v => Number.isFinite(v));
@@ -1127,13 +1787,17 @@
         row.day = live && Number.isFinite(live.day) ? live.day : (closes.at(-1) - closes.at(-2)) / closes.at(-2) * 100;
         row.rsi = calcRsi(closes) ?? row.rsi;
         row.bb = calcBb(closes) ?? row.bb;
+        row.mom6 = calcReturn(closes, 126) ?? 0;
+        row.mom12 = calcReturn(closes, 231, 21) ?? 0;
+        row.volatility = calcVolatility(closes) ?? 0;
+        row.mdd = calcMaxDrawdown(closes) ?? 0;
       }));
       const refreshableCount = rows.filter(row => !isCash(row)).length;
       const ok = results.filter((r, i) => !isCash(rows[i]) && r.status === "fulfilled").length;
       results.forEach((result, i) => {
         if (result.status === "rejected") console.warn("naver market refresh failed", rows[i].ticker, result.reason);
       });
-      status.textContent = ok ? `네이버 기준 ${ok}개 종목 갱신 완료` : refreshableCount ? "갱신 실패: 네이버 API 또는 CORS 상태를 확인하세요" : "갱신할 주식 종목이 없습니다";
+      status.textContent = ok ? `네이버 기준 ${ok}개 주가 · ${fundamentalCount}개 재무정보 갱신 완료` : refreshableCount ? "갱신 실패: 네이버 API 또는 CORS 상태를 확인하세요" : "갱신할 주식 종목이 없습니다";
       render();
       queueSheetSave();
     }
@@ -1143,8 +1807,16 @@
       if (!input) return;
       const i = +input.dataset.i, key = input.dataset.k;
       rows[i][key] = input.dataset.format === "comma" ? parseNumber(input.value) : input.type === "number" ? +input.value : input.value;
+      if (input.closest(".quant-table")) {
+        queueSheetSave();
+        return;
+      }
       render(false);
       queueSheetSave();
+    });
+
+    document.addEventListener("change", e => {
+      if (e.target.closest(".quant-table input[data-i]")) render(false);
     });
 
     document.addEventListener("blur", e => {
@@ -1187,6 +1859,9 @@
     });
     document.getElementById("toggleMask").addEventListener("click", () => { maskMoney = !maskMoney; render(); });
     document.getElementById("refreshMarket").addEventListener("click", refreshMarket);
+    document.getElementById("scanKospi200").addEventListener("click", scanKospi200);
+    document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
+    document.getElementById("loadLedger").addEventListener("click", loadAssetLedger);
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
     document.getElementById("toggleSettings").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
@@ -1216,6 +1891,8 @@
         document.querySelectorAll(".tab-button").forEach(x => x.classList.toggle("active", x === button));
         document.querySelectorAll(".view").forEach(view => view.hidden = view.id !== button.dataset.view);
         if (button.dataset.view === "aiView") render(false);
+        if (button.dataset.view === "historyView") loadPerformanceHistory();
+        if (button.dataset.view === "ledgerView") loadAssetLedger();
       });
     });
 

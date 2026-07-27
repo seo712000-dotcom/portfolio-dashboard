@@ -1,8 +1,7 @@
-const CACHE_NAME = "portfolio-dashboard-v4";
+const CACHE_NAME = "portfolio-dashboard-v11";
 const APP_SHELL = [
   "./",
   "index.html",
-  "portfolio-dashboard.html",
   "portfolio-config.js",
   "manifest.json",
   "portfolio-icon.svg"
@@ -38,6 +37,6 @@ self.addEventListener("fetch", event => {
         caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
         return response;
       })
-      .catch(() => caches.match(request).then(cached => cached || caches.match("portfolio-dashboard.html")))
+      .catch(() => caches.match(request).then(cached => cached || caches.match("index.html")))
   );
 });
