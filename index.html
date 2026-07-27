@@ -1421,10 +1421,11 @@
       const holdings = (assetLedger.holdings || []).filter(row => row["종목"] && ledgerNumber(row, "수량") > 0);
       const monthly = (assetLedger.monthly || []).filter(row => row["기준월"]);
       const latest = daily.at(-1) || {};
-      const totalAsset = ledgerNumber(latest, "총 자산 평가금");
-      const principal = ledgerNumber(latest, "투자 원금");
-      const profit = ledgerNumber(latest, "누적 수익금");
-      const cumulative = ledgerNumber(latest, "누적 수익률");
+      const current = assetLedger.current || {};
+      const totalAsset = current.totalAsset != null ? Number(current.totalAsset) : ledgerNumber(latest, "총 자산 평가금");
+      const principal = current.principal != null ? Number(current.principal) : ledgerNumber(latest, "투자 원금");
+      const profit = current.profit != null ? Number(current.profit) : ledgerNumber(latest, "누적 수익금");
+      const cumulative = current.returnRate != null ? Number(current.returnRate) : ledgerNumber(latest, "누적 수익률");
       const dailyReturn = ledgerNumber(latest, "전일대비 수익률");
       const dailyReturnText = latest["전일대비 수익률"] === "" || latest["전일대비 수익률"] == null
         ? "기준일"
@@ -1435,7 +1436,8 @@
         ["투자원금", money(principal), ""],
         ["누적손익", money(profit), cls(profit)],
         ["누적수익률", `${(cumulative * 100).toFixed(2)}%`, cls(cumulative)],
-        ["오늘 수익률", dailyReturnText, cls(dailyReturn)]
+        ["오늘 수익률", dailyReturnText, cls(dailyReturn)],
+        ["보유종목 수", `${current.holdingsCount != null ? current.holdingsCount : holdings.length}개`, ""]
       ].map(([label, value, className]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score ${className}">${value}</strong></article>`).join("");
 
       document.getElementById("ledgerStatus").textContent = daily.length
