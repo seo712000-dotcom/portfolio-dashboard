@@ -462,6 +462,27 @@
     .phase-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #273549; white-space: nowrap; font-weight: 800; }
     .stock-link { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(105,167,255,.72); }
     .stock-link:hover { color: var(--blue); border-bottom-style: solid; }
+    .ledger-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr); gap: 14px; margin-bottom: 14px; }
+    .ledger-chart { min-height: 300px; display: grid; align-items: center; }
+    .ledger-chart svg { display: block; width: 100%; height: 270px; overflow: visible; }
+    .chart-grid { stroke: rgba(255,255,255,.08); stroke-width: 1; }
+    .chart-line { fill: none; stroke: var(--cyan); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+    .chart-area { fill: url(#ledgerArea); opacity: .3; }
+    .chart-dot { fill: var(--cyan); stroke: #071015; stroke-width: 2; }
+    .chart-label { fill: var(--muted); font-size: 11px; }
+    .allocation { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; align-items: center; }
+    .allocation-donut { width: 170px; aspect-ratio: 1; border-radius: 50%; position: relative; background: #182331; }
+    .allocation-donut::after { content: ""; position: absolute; inset: 28%; border-radius: 50%; background: var(--panel); border: 1px solid rgba(255,255,255,.08); }
+    .allocation-list { display: grid; gap: 8px; }
+    .allocation-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 12px; }
+    .allocation-swatch { width: 10px; height: 10px; border-radius: 3px; }
+    .ledger-month-bars { display: grid; gap: 10px; }
+    .month-row { display: grid; grid-template-columns: 72px minmax(120px, 1fr) 72px; gap: 10px; align-items: center; font-size: 12px; }
+    .month-track { height: 14px; position: relative; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .month-fill { position: absolute; left: 50%; height: 100%; border-radius: 999px; }
+    .month-fill.positive { background: var(--green); }
+    .month-fill.negative { background: var(--red); transform: translateX(-100%); }
+    .ledger-empty { min-height: 180px; display: grid; place-items: center; color: var(--muted); text-align: center; line-height: 1.6; }
 
     @media (max-width: 1120px) {
       .summary { grid-template-columns: repeat(3, 1fr); }
@@ -471,6 +492,7 @@
       .quant-summary { grid-template-columns: repeat(2, 1fr); }
       .treemap { height: auto; min-height: 0; grid-template-columns: repeat(2, 1fr); }
       .sector-box { grid-column: span 1 !important; grid-row: span 1 !important; min-height: 220px; }
+      .ledger-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
       .app { padding: 12px; }
@@ -493,6 +515,8 @@
       table { min-width: 760px; }
       th, td { padding: 6px; font-size: 12px; }
       td input { min-height: 34px; padding: 0 7px; }
+      .allocation { grid-template-columns: 1fr; justify-items: center; }
+      .allocation-list { width: 100%; }
     }
   </style>
 </head>
@@ -531,6 +555,7 @@
       <button class="tab-button" data-view="quantView">퀀트 분석</button>
       <button class="tab-button" data-view="kospiView">코스피200 TOP20</button>
       <button class="tab-button" data-view="historyView">성과 검증</button>
+      <button class="tab-button" data-view="ledgerView">자산원장</button>
     </nav>
 
     <div class="view" id="dashboardView">
@@ -677,6 +702,37 @@
         <div class="quant-note">기준지수는 KODEX200(069500)입니다. 첫 성과는 기록 후 약 1개월부터 계산됩니다.</div>
       </section>
     </section>
+
+    <section class="view" id="ledgerView" hidden>
+      <section class="quant-summary" id="ledgerSummary"></section>
+      <section class="ledger-grid">
+        <section class="panel">
+          <div class="panel-head">
+            <div><h2>일별 자산 변화</h2><div class="hint" id="ledgerStatus">원장 데이터를 불러오면 표시됩니다.</div></div>
+            <button id="loadLedger" class="primary">원장 새로고침</button>
+          </div>
+          <div class="ledger-chart" id="ledgerDailyChart"></div>
+        </section>
+        <aside class="panel">
+          <div class="panel-head"><h2>현재 보유 비중</h2><div class="hint">평가금액 기준</div></div>
+          <div class="allocation" id="ledgerAllocation"></div>
+        </aside>
+      </section>
+      <section class="ledger-grid">
+        <section class="panel">
+          <div class="panel-head"><h2>월별 누적수익률</h2><div class="hint">각 월 마지막 영업일 기준</div></div>
+          <div class="ledger-month-bars" id="ledgerMonthly"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>최근 보유 변경</h2><div class="hint">매수·매도·평단 변경</div></div>
+          <div class="table-wrap"><table><thead><tr><th>날짜</th><th>변경 내용</th></tr></thead><tbody id="ledgerChanges"></tbody></table></div>
+        </section>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>일별 수익률 기록</h2><div class="hint">Google 원장 수익률 탭과 동기화</div></div>
+        <div class="table-wrap"><table><thead><tr><th>날짜</th><th>총자산</th><th>투자원금</th><th>누적손익</th><th>누적수익률</th><th>일일수익률</th><th>보유변경</th></tr></thead><tbody id="ledgerDailyRows"></tbody></table></div>
+      </section>
+    </section>
   </main>
 
   <script src="portfolio-config.js"></script>
@@ -696,6 +752,7 @@
     let jsonpSeq = 0;
     let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
     let historyRows = [];
+    let assetLedger = { daily: [], holdings: [], monthly: [], updatedAt: "" };
 
     const defaultConfig = window.PORTFOLIO_CONFIG || {};
     const savedConfig = JSON.parse(localStorage.getItem("portfolioGoogleConfig") || "{}");
@@ -1332,6 +1389,165 @@
       document.getElementById("historyStatus").textContent = dates.length ? `최근 기록 ${dates.at(-1)} · 결과는 분석할 때마다 갱신됩니다.` : "저장된 점수 기록이 없습니다. 코스피200을 다시 분석하세요.";
     }
 
+    async function loadAssetLedger() {
+      const status = document.getElementById("ledgerStatus");
+      try {
+        status.textContent = "Google 자산원장 불러오는 중…";
+        const payload = await jsonpRequest({ action: "assetLedger" }, 20000);
+        if (!payload || !payload.ok || !payload.ledger) throw new Error(payload && payload.error || "원장 불러오기 실패");
+        assetLedger = payload.ledger;
+        renderAssetLedger();
+      } catch (error) {
+        console.warn("asset ledger load failed", error);
+        status.textContent = "자산원장을 불러오지 못했습니다. Apps Script의 새 배포 여부를 확인하세요.";
+        document.getElementById("ledgerDailyChart").innerHTML = `<div class="ledger-empty">원장 데이터 연결에 실패했습니다.<br>잠시 후 새로고침해 주세요.</div>`;
+      }
+    }
+
+    function ledgerNumber(row, key) {
+      const value = row && row[key];
+      if (typeof value === "number") return value;
+      return parseNumber(value);
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      })[character]);
+    }
+
+    function renderAssetLedger() {
+      const daily = (assetLedger.daily || []).filter(row => row["1열"]);
+      const holdings = (assetLedger.holdings || []).filter(row => row["종목"] && ledgerNumber(row, "수량") > 0);
+      const monthly = (assetLedger.monthly || []).filter(row => row["기준월"]);
+      const latest = daily.at(-1) || {};
+      const totalAsset = ledgerNumber(latest, "총 자산 평가금");
+      const principal = ledgerNumber(latest, "투자 원금");
+      const profit = ledgerNumber(latest, "누적 수익금");
+      const cumulative = ledgerNumber(latest, "누적 수익률");
+      const dailyReturn = ledgerNumber(latest, "전일대비 수익률");
+      const dailyReturnText = latest["전일대비 수익률"] === "" || latest["전일대비 수익률"] == null
+        ? "기준일"
+        : `${(dailyReturn * 100).toFixed(2)}%`;
+
+      document.getElementById("ledgerSummary").innerHTML = [
+        ["총 평가금액", money(totalAsset), ""],
+        ["투자원금", money(principal), ""],
+        ["누적손익", money(profit), cls(profit)],
+        ["누적수익률", `${(cumulative * 100).toFixed(2)}%`, cls(cumulative)],
+        ["오늘 수익률", dailyReturnText, cls(dailyReturn)]
+      ].map(([label, value, className]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score ${className}">${value}</strong></article>`).join("");
+
+      document.getElementById("ledgerStatus").textContent = daily.length
+        ? `최근 기록 ${latest["1열"]} · 원장 조회 ${assetLedger.updatedAt || ""}`
+        : "저장된 일별 기록이 없습니다.";
+      renderLedgerLineChart(daily);
+      renderLedgerAllocation(holdings);
+      renderLedgerMonthly(monthly);
+
+      const changes = daily.filter(row => {
+        const change = String(row["보유변경"] || "");
+        return change && change !== "변경 없음";
+      }).slice(-10).reverse();
+      document.getElementById("ledgerChanges").innerHTML = changes.length
+        ? changes.map(row => `<tr><td>${escapeHtml(row["1열"])}</td><td>${escapeHtml(row["보유변경"])}</td></tr>`).join("")
+        : `<tr><td colspan="2">기록된 보유 변경이 없습니다.</td></tr>`;
+
+      document.getElementById("ledgerDailyRows").innerHTML = daily.slice(-30).reverse().map(row => {
+        const cumulativeValue = ledgerNumber(row, "누적 수익률");
+        const dayValue = ledgerNumber(row, "전일대비 수익률");
+        const dayBlank = row["전일대비 수익률"] === "" || row["전일대비 수익률"] == null;
+        return `<tr>
+          <td>${escapeHtml(row["1열"])}</td>
+          <td>${money(ledgerNumber(row, "총 자산 평가금"))}</td>
+          <td>${money(ledgerNumber(row, "투자 원금"))}</td>
+          <td class="${cls(ledgerNumber(row, "누적 수익금"))}">${money(ledgerNumber(row, "누적 수익금"))}</td>
+          <td class="${cls(cumulativeValue)}">${(cumulativeValue * 100).toFixed(2)}%</td>
+          <td class="${cls(dayValue)}">${dayBlank ? "-" : `${(dayValue * 100).toFixed(2)}%`}</td>
+          <td>${escapeHtml(row["보유변경"] || "-")}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderLedgerLineChart(daily) {
+      const container = document.getElementById("ledgerDailyChart");
+      const points = daily.slice(-30).map(row => ({
+        date: String(row["1열"] || ""),
+        value: ledgerNumber(row, "총 자산 평가금")
+      })).filter(point => point.value > 0);
+      if (!points.length) {
+        container.innerHTML = `<div class="ledger-empty">일별 자산 기록이 없습니다.</div>`;
+        return;
+      }
+      const width = 760, height = 270, left = 64, right = 18, top = 18, bottom = 38;
+      const values = points.map(point => point.value);
+      let min = Math.min(...values), max = Math.max(...values);
+      if (min === max) { min *= .95; max *= 1.05; }
+      const range = max - min || 1;
+      const x = index => left + (points.length === 1 ? (width - left - right) / 2 : index * (width - left - right) / (points.length - 1));
+      const y = value => top + (max - value) / range * (height - top - bottom);
+      const coords = points.map((point, index) => [x(index), y(point.value)]);
+      const line = coords.map((point, index) => `${index ? "L" : "M"}${point[0].toFixed(1)},${point[1].toFixed(1)}`).join(" ");
+      const area = `${line} L${coords.at(-1)[0].toFixed(1)},${height - bottom} L${coords[0][0].toFixed(1)},${height - bottom} Z`;
+      const ticks = [0, .25, .5, .75, 1].map(ratio => {
+        const value = max - range * ratio;
+        const ty = y(value);
+        return `<line class="chart-grid" x1="${left}" y1="${ty}" x2="${width - right}" y2="${ty}"/><text class="chart-label" x="${left - 8}" y="${ty + 4}" text-anchor="end">${nf.format(Math.round(value / 10000))}만</text>`;
+      }).join("");
+      const labels = points.map((point, index) => {
+        if (index !== 0 && index !== points.length - 1 && index % Math.ceil(points.length / 5) !== 0) return "";
+        return `<text class="chart-label" x="${x(index)}" y="${height - 12}" text-anchor="middle">${escapeHtml(point.date.slice(5))}</text>`;
+      }).join("");
+      container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="일별 총자산 변화 차트">
+        <defs><linearGradient id="ledgerArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#49d3d1"/><stop offset="1" stop-color="#49d3d1" stop-opacity="0"/></linearGradient></defs>
+        ${ticks}<path class="chart-area" d="${area}"/><path class="chart-line" d="${line}"/>
+        ${coords.map(point => `<circle class="chart-dot" cx="${point[0]}" cy="${point[1]}" r="4"/>`).join("")}${labels}
+      </svg>`;
+    }
+
+    function renderLedgerAllocation(holdings) {
+      const container = document.getElementById("ledgerAllocation");
+      const items = holdings.map(row => ({
+        name: String(row["종목"] || ""),
+        ticker: String(row["티커"] || ""),
+        value: ledgerNumber(row, "수량") * ledgerNumber(row, "현재가")
+      })).filter(item => item.value > 0).sort((a, b) => b.value - a.value);
+      const total = items.reduce((sum, item) => sum + item.value, 0);
+      if (!items.length || !total) {
+        container.innerHTML = `<div class="ledger-empty">보유종목 평가금액이 없습니다.</div>`;
+        return;
+      }
+      let cursor = 0;
+      const segments = items.map((item, index) => {
+        const start = cursor;
+        cursor += item.value / total * 100;
+        return `${sectorColors[index % sectorColors.length]} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`;
+      });
+      container.innerHTML = `<div class="allocation-donut" style="background:conic-gradient(${segments.join(",")})"></div>
+        <div class="allocation-list">${items.map((item, index) => `<div class="allocation-row">
+          <span class="allocation-swatch" style="background:${sectorColors[index % sectorColors.length]}"></span>
+          <span>${stockLink({ ticker: item.ticker, name: item.name }, escapeHtml(item.name))}</span>
+          <strong>${(item.value / total * 100).toFixed(1)}%</strong>
+        </div>`).join("")}</div>`;
+    }
+
+    function renderLedgerMonthly(monthly) {
+      const container = document.getElementById("ledgerMonthly");
+      if (!monthly.length) {
+        container.innerHTML = `<div class="ledger-empty">월별 요약 기록이 없습니다.</div>`;
+        return;
+      }
+      const items = monthly.slice(-12).map(row => ({
+        month: String(row["기준월"] || "").slice(0, 7),
+        value: ledgerNumber(row, "누적 수익률")
+      }));
+      const maxAbs = Math.max(.01, ...items.map(item => Math.abs(item.value)));
+      container.innerHTML = items.map(item => {
+        const width = Math.min(50, Math.abs(item.value) / maxAbs * 50);
+        return `<div class="month-row"><span>${escapeHtml(item.month)}</span><div class="month-track"><span class="month-fill ${cls(item.value)}" style="width:${width}%"></span></div><strong class="${cls(item.value)}">${(item.value * 100).toFixed(2)}%</strong></div>`;
+      }).join("");
+    }
+
     function render(includeEditor = true) {
       rows = rows.map(r => ({
         ...r,
@@ -1643,6 +1859,7 @@
     document.getElementById("refreshMarket").addEventListener("click", refreshMarket);
     document.getElementById("scanKospi200").addEventListener("click", scanKospi200);
     document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
+    document.getElementById("loadLedger").addEventListener("click", loadAssetLedger);
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
     document.getElementById("toggleSettings").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
@@ -1673,6 +1890,7 @@
         document.querySelectorAll(".view").forEach(view => view.hidden = view.id !== button.dataset.view);
         if (button.dataset.view === "aiView") render(false);
         if (button.dataset.view === "historyView") loadPerformanceHistory();
+        if (button.dataset.view === "ledgerView") loadAssetLedger();
       });
     });
 
