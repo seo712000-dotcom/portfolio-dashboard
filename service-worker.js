@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v20-pattern-progress";
+const CACHE_NAME = "portfolio-dashboard-v21-sox30";
 const APP_SHELL = [
   "./",
   "index.html",
