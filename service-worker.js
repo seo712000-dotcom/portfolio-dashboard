@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v14-refresh-fix";
+const CACHE_NAME = "portfolio-dashboard-v15-sector-fix";
 const APP_SHELL = [
   "./",
   "index.html",
