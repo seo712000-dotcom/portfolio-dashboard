@@ -779,7 +779,8 @@
     function normalizeTicker(ticker) {
       const t = String(ticker || "").trim().toUpperCase().replace("KRX:", "").replace("KOSDAQ:", "");
       if (t === "CASH" || t === "현금") return "CASH";
-      if (/^\d{6}\.(KS|KQ)$/.test(t)) return t;
+      if (/^[0-9A-Z]{6}\.(KS|KQ)$/.test(t)) return t;
+      if (/^[0-9A-Z]{6}$/.test(t) && /[A-Z]/.test(t)) return t;
       if (/^\d{6}$/.test(t)) return t === "086520" ? `${t}.KQ` : `${t}.KS`;
       return t;
     }
@@ -791,7 +792,7 @@
     function stockLink(item, label = item.name) {
       if (!item || isCash(item)) return String(label || "-");
       const code = naverCode(item.ticker || item.code);
-      if (!/^\d{6}$/.test(code)) return String(label || "-");
+      if (!/^[0-9A-Z]{6}$/.test(code)) return String(label || "-");
       return `<a class="stock-link" href="https://finance.naver.com/item/main.naver?code=${code}" target="_blank" rel="noopener noreferrer" title="네이버 증권에서 ${label} 차트 열기">${label}</a>`;
     }
 
