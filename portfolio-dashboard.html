@@ -931,7 +931,7 @@
             avg: parseNumber(item.avg),
             qty: parseNumber(item.qty),
             price: parseNumber(item.price),
-            day: old.day || 0
+            day: Number.isFinite(Number(item.day)) ? Number(item.day) : (old.day || 0)
           };
         });
         if (parseNumber(account.cash) > 0) {
