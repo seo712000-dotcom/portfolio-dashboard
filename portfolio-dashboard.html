@@ -1773,7 +1773,7 @@
 
     function applyFundamentalValues(row, values) {
       let updated = false;
-      ["per", "pbr", "roe", "debt", "epsGrowth", "mom6", "mom12", "volatility", "mdd"].forEach(key => {
+      ["per", "pbr", "roe", "debt", "epsGrowth", "mom6", "mom12", "volatility", "mdd", "price", "day", "rsi", "bb"].forEach(key => {
         const value = values[key];
         if (value != null && Number.isFinite(value)) {
           row[key] = Math.round(value * 100) / 100;
@@ -1803,11 +1803,23 @@
 
     async function refreshMarket() {
       const status = document.getElementById("status");
+      const button = document.getElementById("refreshMarket");
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = "네이버 갱신 중...";
       status.textContent = "네이버 주가·재무정보 갱신 중...";
+      setSyncStatus("네이버 주가·재무정보 갱신 중...");
       let fundamentalCount = 0;
+      try {
       const results = await Promise.allSettled(rows.map(async row => {
         if (isCash(row)) return;
         const code = naverCode(row.ticker);
+        if (hasGoogleConfig()) {
+          const values = await fetchFundamentalValues(code);
+          if (!applyFundamentalValues(row, values)) throw new Error("갱신할 값 없음");
+          fundamentalCount += 1;
+          return;
+        }
         const end = new Date();
         const start = new Date();
         start.setMonth(start.getMonth() - 15);
@@ -1848,8 +1860,17 @@
         if (result.status === "rejected") console.warn("naver market refresh failed", rows[i].ticker, result.reason);
       });
       status.textContent = ok ? `네이버 기준 ${ok}개 주가 · ${fundamentalCount}개 재무정보 갱신 완료` : refreshableCount ? "갱신 실패: 네이버 API 또는 CORS 상태를 확인하세요" : "갱신할 주식 종목이 없습니다";
+      setSyncStatus(status.textContent);
       render();
       queueSheetSave();
+      } catch (error) {
+        console.warn("Naver refresh failed", error);
+        status.textContent = `네이버 갱신 오류 · ${error.message}`;
+        setSyncStatus(status.textContent);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
     }
 
     document.addEventListener("input", e => {
@@ -1926,7 +1947,13 @@
       setSyncStatus(hasGoogleConfig() ? "Google Sheets 설정 저장됨" : "Google Sheets 설정 필요");
       loadFromGoogleSheets({ silent: true });
     });
-    document.getElementById("runDiagnosis").addEventListener("click", () => render(false));
+    document.getElementById("runDiagnosis").addEventListener("click", () => {
+      const button = document.getElementById("runDiagnosis");
+      render(false);
+      button.textContent = "진단 갱신 완료";
+      setSyncStatus(`포트폴리오 진단 갱신됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
+      setTimeout(() => button.textContent = "진단 새로고침", 1200);
+    });
     document.getElementById("copyPrompt").addEventListener("click", async () => {
       const prompt = document.getElementById("aiPrompt").value;
       try {
