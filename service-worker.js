@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v16-etf-day-fix";
+const CACHE_NAME = "portfolio-dashboard-v18-kb-chain-refresh";
 const APP_SHELL = [
   "./",
   "index.html",

@@ -922,7 +922,7 @@
         const account = payload.account;
         const previousByCode = new Map(rows.filter(row => !isCash(row)).map(row => [naverCode(row.ticker), row]));
         const merged = (account.holdings || []).map(item => {
-          const old = previousByCode.get(String(item.code || item.ticker || "").replace(/\D/g, "")) || {};
+          const old = previousByCode.get(naverCode(item.code || item.ticker)) || {};
           return {
             ...old,
             ticker: normalizeTicker(item.code || item.ticker),
@@ -938,11 +938,16 @@
           merged.push({ ticker: "CASH", name: "예수금", sector: "현금", avg: parseNumber(account.cash), qty: 1, price: parseNumber(account.cash), day: 0, rsi: 0, bb: 0 });
         }
         rows = cleanSheetRows(merged);
+        const marketRows = rows.filter(row => !isCash(row));
         localStorage.setItem("portfolioRows", JSON.stringify(rows));
         render();
         syncReady = true;
-        saveToGoogleSheetsNow();
-        setSyncStatus(`KB 계좌 동기화됨(${account.basis}) · ${account.updatedAt}`);
+        setSyncStatus(`KB 잔고 완료 · ${marketRows.length}종목 네이버 지표 자동 갱신 중...`);
+        // 수동 버튼에서 검증된 동일한 갱신 경로를 그대로 실행합니다.
+        await new Promise(resolve => setTimeout(resolve, 800));
+        const marketResult = await refreshMarket();
+        await saveToGoogleSheetsNow();
+        setSyncStatus(`KB 계좌·퀀트지표 동기화됨(${account.basis}) · ${marketResult.ok}/${marketRows.length}종목 · ${account.updatedAt}`);
         return true;
       } catch (error) {
         console.warn("KB account load failed", error);
@@ -1882,10 +1887,12 @@
       setSyncStatus(status.textContent);
       render();
       queueSheetSave();
+      return { ok, fundamentalCount };
       } catch (error) {
         console.warn("Naver refresh failed", error);
         status.textContent = `네이버 갱신 오류 · ${error.message}`;
         setSyncStatus(status.textContent);
+        return { ok: 0, fundamentalCount };
       } finally {
         button.disabled = false;
         button.textContent = originalText;
