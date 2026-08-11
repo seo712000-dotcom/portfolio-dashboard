@@ -1409,6 +1409,13 @@
     function renderChartPatterns(scored) {
       const labels = { box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량 증가" };
       const selected = (document.getElementById("patternFilter") || {}).value || "all";
+      const scanButton = document.getElementById("scanPatterns");
+      const analyzed = kospiScan.rows.length;
+      const total = kospiScan.total || 200;
+      scanButton.disabled = kospiScan.running;
+      scanButton.textContent = kospiScan.running
+        ? `분석 중 ${analyzed}/${total}`
+        : (analyzed >= total ? "분석 완료 · 다시 갱신" : analyzed ? `이어 분석 ${analyzed}/${total}` : "조건 분석 갱신");
       const evaluated = scored.map(entry => ({ ...entry, pattern: chartPatternFlags(entry.item) }));
       const counts = Object.keys(labels).reduce((result, key) => {
         result[key] = evaluated.filter(entry => entry.pattern.flags[key] && !entry.pattern.risk).length;
@@ -1430,7 +1437,11 @@
         return `<tr><td>${index + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td>${tags.map(tag => `<span class="phase-badge">${tag}</span>`).join(" ")}</td><td>${fmt(item.boxRange20)}%</td><td>${fmt(item.trend20)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.mdd)}%</td><td class="risk-pass">관찰 후보</td></tr>`;
       }).join("") : `<tr><td colspan="11">선택한 조건을 통과한 종목이 없습니다. 최신 코드로 코스피200을 다시 분석해 주세요.</td></tr>`;
       const risky = evaluated.filter(entry => entry.pattern.risk).length;
-      document.getElementById("patternNote").textContent = `${evaluated.length}종목 기준 · 위험 제외 ${risky}개 · 조건검색은 관찰 후보이며 매수 신호가 아닙니다.`;
+      document.getElementById("patternNote").textContent = kospiScan.running
+        ? `조건 분석 진행 중 · ${analyzed}/${total}종목 완료 · 화면을 닫지 말고 잠시 기다려 주세요.`
+        : analyzed >= total
+          ? `조건 분석 완료 · ${analyzed}/${total}종목 · 위험 제외 ${risky}개 · 조건검색은 관찰 후보이며 매수 신호가 아닙니다.`
+          : `${evaluated.length}종목 기준 · 위험 제외 ${risky}개 · 조건 분석 갱신을 눌러 최신 결과를 계산하세요.`;
     }
 
     function reviewReasons(item, score) {
