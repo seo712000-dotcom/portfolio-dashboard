@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v11";
+const CACHE_NAME = "portfolio-dashboard-v12-kb";
 const APP_SHELL = [
   "./",
   "index.html",

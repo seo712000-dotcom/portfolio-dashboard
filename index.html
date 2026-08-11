@@ -530,6 +530,7 @@
       <div class="actions">
         <button id="toggleMask" title="금액 표시를 숨기거나 다시 보입니다">금액 가리기</button>
         <button id="refreshMarket" class="primary" title="네이버증권 데이터로 가능한 현재 수치를 반영합니다">네이버 기준 갱신</button>
+        <button id="refreshKb" class="primary" title="KB증권 개인 Open API에서 계좌2 체결기준 잔고를 불러옵니다">KB 계좌 갱신</button>
         <button id="loadSheets" title="Google Sheets에서 보유종목 데이터를 불러옵니다">시트 불러오기</button>
         <button id="toggleSettings" title="Google Sheets 연동 설정을 엽니다">설정</button>
         <button id="restoreSample" title="초기 예시 데이터로 복원합니다">예시 복원</button>
@@ -547,6 +548,7 @@
         <input id="googleSheetId" placeholder="구글시트 URL의 /d/ 와 /edit 사이 ID" />
       </div>
       <button id="saveSettings" class="primary">설정 저장</button>
+      <div class="hint">KB App Key와 Secret은 이 화면에 입력하지 않습니다. Apps Script의 스크립트 속성에만 저장됩니다.</div>
     </section>
 
     <nav class="top-tabs" aria-label="상단 보기 전환">
@@ -882,6 +884,53 @@
         console.warn("Google Sheets load failed", error);
         setSyncStatus("Google Sheets 불러오기 실패 · 로컬 데이터 표시");
         return false;
+      }
+    }
+
+    async function loadFromKbAccount() {
+      if (!hasGoogleConfig()) {
+        setSyncStatus("먼저 Google Apps Script 설정이 필요합니다");
+        return false;
+      }
+      const button = document.getElementById("refreshKb");
+      button.disabled = true;
+      try {
+        setSyncStatus("KB 계좌2 잔고 불러오는 중...");
+        const payload = await jsonpRequest({ action: "kbAccount" }, 30000);
+        if (!payload || payload.ok === false || !payload.account) {
+          throw new Error(payload && payload.error || "KB 계좌 조회 실패");
+        }
+        const account = payload.account;
+        const previousByCode = new Map(rows.filter(row => !isCash(row)).map(row => [naverCode(row.ticker), row]));
+        const merged = (account.holdings || []).map(item => {
+          const old = previousByCode.get(String(item.code || item.ticker || "").replace(/\D/g, "")) || {};
+          return {
+            ...old,
+            ticker: normalizeTicker(item.code || item.ticker),
+            name: item.name || old.name || "",
+            sector: old.sector || "미분류",
+            avg: parseNumber(item.avg),
+            qty: parseNumber(item.qty),
+            price: parseNumber(item.price),
+            day: old.day || 0
+          };
+        });
+        if (parseNumber(account.cash) > 0) {
+          merged.push({ ticker: "CASH", name: "예수금", sector: "현금", avg: parseNumber(account.cash), qty: 1, price: parseNumber(account.cash), day: 0, rsi: 0, bb: 0 });
+        }
+        rows = cleanSheetRows(merged);
+        localStorage.setItem("portfolioRows", JSON.stringify(rows));
+        render();
+        syncReady = true;
+        saveToGoogleSheetsNow();
+        setSyncStatus(`KB 계좌 동기화됨(${account.basis}) · ${account.updatedAt}`);
+        return true;
+      } catch (error) {
+        console.warn("KB account load failed", error);
+        setSyncStatus(`KB 계좌 조회 실패 · ${error.message}`);
+        return false;
+      } finally {
+        button.disabled = false;
       }
     }
 
@@ -1859,6 +1908,7 @@
     });
     document.getElementById("toggleMask").addEventListener("click", () => { maskMoney = !maskMoney; render(); });
     document.getElementById("refreshMarket").addEventListener("click", refreshMarket);
+    document.getElementById("refreshKb").addEventListener("click", loadFromKbAccount);
     document.getElementById("scanKospi200").addEventListener("click", scanKospi200);
     document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
     document.getElementById("loadLedger").addEventListener("click", loadAssetLedger);
