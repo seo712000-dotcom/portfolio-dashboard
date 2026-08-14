@@ -516,6 +516,8 @@
     .indicator-state.neutral { color: #a9c7ea; background: rgba(105,167,255,.1); border: 1px solid rgba(105,167,255,.3); }
     .indicator-state.warning { color: #ffd17a; background: rgba(241,184,75,.1); border: 1px solid rgba(241,184,75,.34); }
     .indicator-state.danger { color: #ff7886; background: rgba(255,77,96,.1); border: 1px solid rgba(255,77,96,.34); }
+    .indicator-external-link { display: inline-flex; width: max-content; align-items: center; justify-content: center; gap: 5px; padding: 8px 11px; border: 1px solid rgba(105,167,255,.45); border-radius: 8px; color: #a9ceff; background: rgba(105,167,255,.1); font-size: 11px; font-weight: 800; text-decoration: none; }
+    .indicator-external-link:hover, .indicator-external-link:focus-visible { color: #fff; border-color: #69a7ff; background: rgba(105,167,255,.2); outline: none; }
     .indicator-open-hint { color: #6f879f; font-size: 10px; text-align: right; }
     .indicator-dialog { width: min(760px, calc(100vw - 24px)); max-height: min(88vh, 820px); padding: 0; color: var(--text); background: #101924; border: 1px solid #33465d; border-radius: 16px; box-shadow: 0 28px 90px rgba(0,0,0,.6); overflow: auto; }
     .indicator-dialog::backdrop { background: rgba(1,7,12,.78); backdrop-filter: blur(3px); }
@@ -901,6 +903,7 @@
       <div class="indicator-dialog-summary"><div class="indicator-dialog-value" id="indicatorDialogValue">-</div><span class="indicator-state neutral" id="indicatorDialogState">판단 대기</span></div>
       <div class="indicator-large-chart" id="indicatorDialogChart"></div>
       <div class="indicator-guide" id="indicatorDialogGuide"></div>
+      <div id="indicatorDialogExternal"></div>
       <div><h3>수치 판단 기준</h3><div class="indicator-bands" id="indicatorDialogBands"></div></div>
       <div class="hint">기준은 일반적인 해석 범위이며 단독 매수·매도 신호가 아닙니다. 추세와 다른 지표를 함께 확인하세요.</div>
     </div>
@@ -2349,12 +2352,16 @@
       const rule = indicatorRule(item || {});
       const title = indicatorEscape(item && item.name || "-");
       const cardStart = `<article class="indicator-card${item && item.available ? "" : " unavailable"}" role="button" tabindex="0" data-market="${market}" data-index="${index}" aria-label="${title} 상세 보기">`;
-      if (!item || !item.available) return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${indicatorEscape(item && item.error || "데이터 없음")}</div><div class="indicator-source">점수 계산에서 제외</div><div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state neutral">기준 확인</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
+      if (!item || !item.available) {
+        const external = item && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">CNN에서 직접 확인 ↗</a>` : "";
+        return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${indicatorEscape(item && item.error || "데이터 없음")}</div><div class="indicator-source">점수 계산에서 제외</div>${external}<div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state neutral">기준 확인</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
+      }
       const value = Number(item.value);
       const change = Number(item.change);
       const unit = item.unit || "";
       const changeText = Number.isFinite(change) ? `${change > 0 ? "▲" : change < 0 ? "▼" : "―"} ${Math.abs(change).toFixed(2)}${unit}` : "전일 비교 없음";
-      return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${indicatorEscape(unit)}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${indicatorEscape(item.detail || "최근 추세")}</div><div class="indicator-source">출처: ${indicatorEscape(item.source || "-")}</div><div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state ${rule.tone}">현재 · ${indicatorEscape(rule.status)}</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
+      const staleLink = item.stale && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">최신값 CNN에서 확인 ↗</a>` : "";
+      return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${indicatorEscape(unit)}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${indicatorEscape(item.detail || "최근 추세")}</div><div class="indicator-source">출처: ${indicatorEscape(item.source || "-")}</div>${staleLink}<div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state ${rule.tone}">현재 · ${indicatorEscape(rule.status)}</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
     }
 
     function openIndicatorDialog(market, index) {
@@ -2372,6 +2379,7 @@
       state.textContent = `현재 · ${rule.status}`;
       document.getElementById("indicatorDialogChart").innerHTML = indicatorLargeChart(item.history, unit);
       document.getElementById("indicatorDialogGuide").innerHTML = `<strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}`;
+      document.getElementById("indicatorDialogExternal").innerHTML = (!item.available || item.stale) && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">CNN Fear &amp; Greed 공식 페이지에서 최신값 확인 ↗</a>` : "";
       document.getElementById("indicatorDialogBands").innerHTML = rule.bands.map(band => `<div class="indicator-band"><strong>${indicatorEscape(band[0])}</strong><span>${indicatorEscape(band[1])}</span></div>`).join("");
       const dialog = document.getElementById("indicatorDialog");
       if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
@@ -2487,6 +2495,7 @@
     ["koreaIndicatorGrid", "usIndicatorGrid"].forEach(id => {
       const grid = document.getElementById(id);
       const open = event => {
+        if (event.target.closest("a")) return;
         const card = event.target.closest(".indicator-card");
         if (card) openIndicatorDialog(card.dataset.market, card.dataset.index);
       };

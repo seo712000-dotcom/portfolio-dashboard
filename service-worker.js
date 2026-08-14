@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v31-market-indicator-charts";
+const CACHE_NAME = "portfolio-dashboard-v35-fear-greed-link";
 const APP_SHELL = [
   "./",
   "index.html",
