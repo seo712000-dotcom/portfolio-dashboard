@@ -468,6 +468,13 @@
     .review-panel { margin-bottom: 14px; border-color: rgba(73,211,209,.42); }
     .leader-panel { margin-bottom: 14px; border-color: rgba(241,184,75,.5); }
     .phase-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #273549; white-space: nowrap; font-weight: 800; }
+    .custom-symbol-manager { display: grid; gap: 9px; margin: 12px 0 16px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(9,16,24,.48); }
+    .custom-symbol-entry { display: grid; grid-template-columns: minmax(180px, 1fr) auto; gap: 8px; }
+    .custom-symbol-entry input { width: 100%; min-height: 40px; border-radius: 8px; border: 1px solid #2b3747; background: #0c121a; color: var(--text); padding: 0 10px; text-transform: uppercase; }
+    .symbol-chips { display: flex; flex-wrap: wrap; gap: 7px; min-height: 25px; }
+    .symbol-chip { display: inline-flex; gap: 7px; align-items: center; padding: 5px 7px 5px 10px; border: 1px solid rgba(105,167,255,.35); border-radius: 999px; background: rgba(105,167,255,.09); color: #c9ddf5; font-size: 12px; font-weight: 800; }
+    .symbol-chip button { min-height: 22px; width: 22px; padding: 0; border-radius: 50%; background: transparent; border: 0; color: #8ea4bb; }
+    .custom-tag { display: inline-block; margin-top: 3px; padding: 2px 5px; border-radius: 5px; color: #ffd17a; background: rgba(241,184,75,.1); border: 1px solid rgba(241,184,75,.28); font-size: 9px; font-weight: 800; }
     .stock-link { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(105,167,255,.72); }
     .stock-link:hover { color: var(--blue); border-bottom-style: solid; }
     .ledger-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr); gap: 14px; margin-bottom: 14px; }
@@ -489,7 +496,8 @@
     .market-panel { border-top: 3px solid var(--accent); }
     .market-panel.us { border-top-color: #69a7ff; }
     .indicator-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-    .indicator-card { min-height: 178px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #111a25; display: grid; gap: 8px; }
+    .indicator-card { min-height: 178px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #111a25; display: grid; gap: 8px; cursor: pointer; transition: border-color .18s ease, transform .18s ease, background .18s ease; }
+    .indicator-card:hover, .indicator-card:focus-visible { border-color: var(--accent); background: #14202c; transform: translateY(-1px); outline: none; }
     .indicator-card.unavailable { opacity: .72; }
     .indicator-title { color: var(--muted); font-size: 13px; }
     .indicator-value { font-size: 25px; font-weight: 800; letter-spacing: -.4px; }
@@ -502,6 +510,31 @@
     .us .sparkline .line { stroke: #69a7ff; }
     .indicator-source { color: #7890aa; font-size: 11px; }
     .indicator-guide { padding-top: 8px; border-top: 1px dashed #2b3a4d; color: #a9bbcf; font-size: 11px; line-height: 1.45; }
+    .indicator-threshold { display: grid; gap: 5px; padding: 8px 9px; border-radius: 9px; background: rgba(255,255,255,.035); color: #9fb2c8; font-size: 10.5px; line-height: 1.4; }
+    .indicator-state { width: max-content; padding: 3px 7px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .indicator-state.good { color: #55e7ad; background: rgba(24,199,121,.12); border: 1px solid rgba(24,199,121,.35); }
+    .indicator-state.neutral { color: #a9c7ea; background: rgba(105,167,255,.1); border: 1px solid rgba(105,167,255,.3); }
+    .indicator-state.warning { color: #ffd17a; background: rgba(241,184,75,.1); border: 1px solid rgba(241,184,75,.34); }
+    .indicator-state.danger { color: #ff7886; background: rgba(255,77,96,.1); border: 1px solid rgba(255,77,96,.34); }
+    .indicator-open-hint { color: #6f879f; font-size: 10px; text-align: right; }
+    .indicator-dialog { width: min(760px, calc(100vw - 24px)); max-height: min(88vh, 820px); padding: 0; color: var(--text); background: #101924; border: 1px solid #33465d; border-radius: 16px; box-shadow: 0 28px 90px rgba(0,0,0,.6); overflow: auto; }
+    .indicator-dialog::backdrop { background: rgba(1,7,12,.78); backdrop-filter: blur(3px); }
+    .indicator-dialog-head { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding: 18px 20px; background: rgba(16,25,36,.96); border-bottom: 1px solid var(--line); }
+    .indicator-dialog-head h2 { margin: 0 0 5px; }
+    .indicator-dialog-close { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 22px; }
+    .indicator-dialog-body { display: grid; gap: 16px; padding: 20px; }
+    .indicator-dialog-summary { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .indicator-dialog-value { font-size: 34px; font-weight: 900; }
+    .indicator-large-chart { width: 100%; height: 280px; padding: 8px; border-radius: 12px; background: #0b141e; border: 1px solid var(--line); }
+    .indicator-large-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+    .indicator-large-chart .grid { stroke: rgba(255,255,255,.08); stroke-width: 1; }
+    .indicator-large-chart .area { fill: rgba(73,211,209,.12); }
+    .indicator-large-chart .line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .indicator-large-chart .dot { fill: var(--accent); stroke: #071015; stroke-width: 2; }
+    .indicator-large-chart text { fill: #7f96ae; font-size: 11px; }
+    .indicator-bands { display: grid; gap: 7px; }
+    .indicator-band { display: grid; grid-template-columns: minmax(115px,.7fr) minmax(150px,1.3fr); gap: 10px; padding: 9px 10px; border-radius: 9px; background: rgba(255,255,255,.035); font-size: 12px; }
+    .indicator-band strong { color: #d8e5f3; }
     .month-row { display: grid; grid-template-columns: 72px minmax(120px, 1fr) 72px; gap: 10px; align-items: center; font-size: 12px; }
     .month-track { height: 14px; position: relative; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
     .month-fill { position: absolute; left: 50%; height: 100%; border-radius: 999px; }
@@ -521,6 +554,7 @@
       .ledger-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
+      .custom-symbol-entry { grid-template-columns: 1fr; }
       .indicator-grid { grid-template-columns: 1fr; }
       .app { padding: 12px; }
       header { align-items: flex-start; flex-direction: column; }
@@ -759,9 +793,20 @@
           <div><h2>나스닥100 기술점수 TOP20</h2><div class="hint" id="nasdaqProgress">분석 전 · 추세 30% · 모멘텀 30% · 거래량 15% · 안정성 25%</div></div>
           <button class="primary" id="scanNasdaq">나스닥100 분석 시작</button>
         </div>
+        <div class="custom-symbol-manager">
+          <div><strong>내 종목 추가 분석</strong><div class="hint">나스닥100에 없는 미국 종목도 Yahoo Finance 티커로 최대 20개까지 추가할 수 있습니다.</div></div>
+          <div class="custom-symbol-entry"><input id="nasdaqCustomInput" type="text" maxlength="180" placeholder="예: TSM, SOFI, IONQ" autocomplete="off" aria-label="추가할 미국 종목코드"><button class="primary" id="addNasdaqCustom">종목 추가</button></div>
+          <div class="symbol-chips" id="nasdaqCustomList"></div>
+          <div class="hint" id="nasdaqCustomStatus">추가 후 분석을 다시 시작하면 TOP20과 미장 조건검색에 함께 반영됩니다.</div>
+        </div>
         <div class="table-wrap"><table class="quant-table">
           <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>추세</th><th>모멘텀</th><th>거래량</th><th>안정성</th><th>신뢰도</th><th>현재가</th><th>1개월</th><th>6개월</th><th>12-1개월</th><th>변동성</th><th>MDD</th></tr></thead>
           <tbody id="nasdaqRows"></tbody>
+        </table></div>
+        <div class="panel-head" style="margin-top:18px"><div><h3>내 추가 종목 분석 결과</h3><div class="hint">TOP20 진입 여부와 관계없이 직접 추가한 모든 종목을 표시합니다.</div></div></div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>종목</th><th>종합</th><th>추세</th><th>모멘텀</th><th>거래량</th><th>안정성</th><th>신뢰도</th><th>현재가</th><th>1개월</th><th>6개월</th><th>MDD</th><th>상태</th></tr></thead>
+          <tbody id="nasdaqCustomRows"></tbody>
         </table></div>
         <div class="quant-note" id="nasdaqNote">5종목씩 분석하며 중단 후 다시 누르면 이어집니다. 미국장은 재무점수 대신 차트 기반 기술점수로 순위를 계산합니다.</div>
       </section>
@@ -847,6 +892,20 @@
     </section>
   </main>
 
+  <dialog class="indicator-dialog" id="indicatorDialog">
+    <div class="indicator-dialog-head">
+      <div><h2 id="indicatorDialogTitle">시장 지표</h2><div class="hint" id="indicatorDialogMeta"></div></div>
+      <button class="indicator-dialog-close" id="indicatorDialogClose" aria-label="닫기">×</button>
+    </div>
+    <div class="indicator-dialog-body">
+      <div class="indicator-dialog-summary"><div class="indicator-dialog-value" id="indicatorDialogValue">-</div><span class="indicator-state neutral" id="indicatorDialogState">판단 대기</span></div>
+      <div class="indicator-large-chart" id="indicatorDialogChart"></div>
+      <div class="indicator-guide" id="indicatorDialogGuide"></div>
+      <div><h3>수치 판단 기준</h3><div class="indicator-bands" id="indicatorDialogBands"></div></div>
+      <div class="hint">기준은 일반적인 해석 범위이며 단독 매수·매도 신호가 아닙니다. 추세와 다른 지표를 함께 확인하세요.</div>
+    </div>
+  </dialog>
+
   <script src="portfolio-config.js"></script>
   <script>
     const sectorColors = ["#49d3d1", "#69a7ff", "#b68cff", "#f1b84b", "#18c779", "#ff8b5c", "#e36bff", "#8de36b"];
@@ -863,7 +922,10 @@
     let syncTimer = null;
     let jsonpSeq = 0;
     let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
-    let nasdaqScan = JSON.parse(localStorage.getItem("nasdaq100Scan") || "null") || { rows: [], next: 0, total: 102, running: false };
+    let nasdaqCustomSymbols = JSON.parse(localStorage.getItem("nasdaqCustomSymbols") || "[]");
+    if (!Array.isArray(nasdaqCustomSymbols)) nasdaqCustomSymbols = [];
+    nasdaqCustomSymbols = Array.from(new Set(nasdaqCustomSymbols.map(value => String(value).toUpperCase()).filter(value => /^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value)))).slice(0, 20);
+    let nasdaqScan = JSON.parse(localStorage.getItem("nasdaq100Scan") || "null") || { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
     let historyRows = [];
     let assetLedger = { daily: [], holdings: [], monthly: [], updatedAt: "" };
     let marketIndicators = JSON.parse(localStorage.getItem("marketIndicators") || "null") || { korea: [], us: [], updatedAt: "" };
@@ -1509,6 +1571,45 @@
       return { total: Math.round(total || 0), trend: Math.round(trend || 0), momentum: Math.round(momentum || 0), volume: Math.round(volume || 0), stability: Math.round(stability || 0), confidence: Math.round(values.filter(v => v !== null).length / 4 * 100) };
     }
 
+    function renderNasdaqCustomSymbols(message = "") {
+      const list = document.getElementById("nasdaqCustomList");
+      list.innerHTML = nasdaqCustomSymbols.length
+        ? nasdaqCustomSymbols.map(symbol => `<span class="symbol-chip">${escapeHtml(symbol)}<button type="button" data-remove-symbol="${escapeHtml(symbol)}" aria-label="${escapeHtml(symbol)} 삭제">×</button></span>`).join("")
+        : `<span class="hint">현재 직접 추가한 종목이 없습니다.</span>`;
+      document.getElementById("nasdaqCustomStatus").textContent = message || (nasdaqCustomSymbols.length
+        ? `직접 추가 ${nasdaqCustomSymbols.length}개 · 분석을 시작하면 기본 나스닥100과 함께 평가됩니다.`
+        : "추가 후 분석을 다시 시작하면 TOP20과 미장 조건검색에 함께 반영됩니다.");
+    }
+
+    function resetNasdaqForCustomSymbols(message) {
+      nasdaqScan = { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
+      localStorage.setItem("nasdaqCustomSymbols", JSON.stringify(nasdaqCustomSymbols));
+      localStorage.setItem("nasdaq100Scan", JSON.stringify(nasdaqScan));
+      renderNasdaqCustomSymbols(message);
+      renderNasdaq100();
+    }
+
+    function addNasdaqCustomSymbols() {
+      const input = document.getElementById("nasdaqCustomInput");
+      const entered = String(input.value || "").toUpperCase().split(/[\s,;]+/).map(value => value.trim()).filter(Boolean);
+      const valid = entered.filter(value => /^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value));
+      const invalid = entered.filter(value => !/^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value));
+      if (!valid.length) {
+        renderNasdaqCustomSymbols(invalid.length ? `형식 오류: ${invalid.join(", ")} · 영문 티커를 입력하세요.` : "추가할 종목코드를 입력하세요.");
+        return;
+      }
+      const before = nasdaqCustomSymbols.length;
+      nasdaqCustomSymbols = Array.from(new Set(nasdaqCustomSymbols.concat(valid))).slice(0, 20);
+      input.value = "";
+      const added = nasdaqCustomSymbols.length - before;
+      resetNasdaqForCustomSymbols(added ? `${valid.join(", ")} 추가됨 · 아래 분석 시작 버튼을 눌러주세요.` : "이미 추가된 종목입니다.");
+    }
+
+    function removeNasdaqCustomSymbol(symbol) {
+      nasdaqCustomSymbols = nasdaqCustomSymbols.filter(value => value !== symbol);
+      resetNasdaqForCustomSymbols(`${symbol} 삭제됨 · 분석 결과가 초기화되었습니다.`);
+    }
+
     function renderNasdaq100() {
       const valid = nasdaqScan.rows.filter(item => !item.error);
       const ranked = valid.map(item => ({ item, score: nasdaqTechnicalScore(item) })).sort((a, b) => b.score.total - a.score.total).slice(0, 20);
@@ -1517,12 +1618,22 @@
       const lowRisk = valid.filter(item => Number(item.mdd || -100) >= -25 && Number(item.volatility || 100) < 55).length;
       document.getElementById("nasdaqSummary").innerHTML = [["분석 종목", `${valid.length}개`],["TOP20 평균", `${avg}점`],["6개월 상승", `${positive}개`],["저위험 후보", `${lowRisk}개`]].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
       const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
-      document.getElementById("nasdaqRows").innerHTML = ranked.length ? ranked.map(({ item, score }, index) => `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.trend}</td><td>${score.momentum}</td><td>${score.volume}</td><td>${score.stability}</td><td>${score.confidence}%</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.mom12, "%")}</td><td>${fmt(item.volatility, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`).join("") : `<tr><td colspan="14">나스닥100 분석을 시작해 주세요.</td></tr>`;
-      const failed = nasdaqScan.rows.filter(item => item.error).length, analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102;
+      document.getElementById("nasdaqRows").innerHTML = ranked.length ? ranked.map(({ item, score }, index) => `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span>${item.sector === "사용자추가" ? `<br><span class="custom-tag">직접 추가</span>` : ""}</td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.trend}</td><td>${score.momentum}</td><td>${score.volume}</td><td>${score.stability}</td><td>${score.confidence}%</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.mom12, "%")}</td><td>${fmt(item.volatility, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`).join("") : `<tr><td colspan="14">나스닥100과 추가 종목 분석을 시작해 주세요.</td></tr>`;
+      const customResults = valid.filter(item => nasdaqCustomSymbols.includes(String(item.ticker || "").toUpperCase())).map(item => ({ item, score: nasdaqTechnicalScore(item) })).sort((a, b) => b.score.total - a.score.total);
+      const analyzedTickers = new Set(nasdaqScan.rows.map(item => String(item.ticker || "").toUpperCase()));
+      const pendingCustom = nasdaqCustomSymbols.filter(symbol => !analyzedTickers.has(symbol));
+      const customRows = customResults.map(({ item, score }) => {
+        const pattern = chartPatternFlags(item);
+        const matched = Object.entries(pattern.flags).filter(([, passed]) => passed).map(([key]) => ({ box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량" }[key])).join(" · ");
+        return `<tr><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.trend}</td><td>${score.momentum}</td><td>${score.volume}</td><td>${score.stability}</td><td>${score.confidence}%</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.mdd, "%")}</td><td>${pattern.risk ? `<span class="negative">위험 주의</span>` : escapeHtml(matched || "일반")}</td></tr>`;
+      });
+      pendingCustom.forEach(symbol => customRows.push(`<tr><td><strong>${escapeHtml(symbol)}</strong></td><td colspan="11" class="hint">분석 대기 · 분석 시작 버튼을 눌러주세요.</td></tr>`));
+      document.getElementById("nasdaqCustomRows").innerHTML = customRows.length ? customRows.join("") : `<tr><td colspan="12">추가한 종목이 없습니다.</td></tr>`;
+      const failed = nasdaqScan.rows.filter(item => item.error).length, analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102 + nasdaqCustomSymbols.length;
       document.getElementById("nasdaqProgress").textContent = `${analyzed}/${total}종목 분석 · 유효 ${analyzed - failed} · TOP ${ranked.length}`;
       document.getElementById("scanNasdaq").disabled = nasdaqScan.running;
       document.getElementById("scanNasdaq").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "다시 분석" : analyzed ? `이어 분석 ${analyzed}/${total}` : "나스닥100 분석 시작";
-      document.getElementById("nasdaqNote").textContent = nasdaqScan.running ? `나스닥100 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `분석 완료 · 유효 ${analyzed - failed}종목 · 미국 재무자료가 아닌 최근 1년 차트 기술점수입니다.` : `5종목씩 분석하며 중단 후 다시 누르면 이어집니다.`;
+      document.getElementById("nasdaqNote").textContent = nasdaqScan.running ? `나스닥100+추가 종목 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `분석 완료 · 유효 ${analyzed - failed}종목 · 직접 추가 ${nasdaqCustomSymbols.length}개 포함 · 최근 1년 차트 기술점수입니다.` : `5종목씩 분석하며 직접 추가 종목도 같은 기준으로 평가합니다.`;
       renderUsPatterns();
     }
 
@@ -1535,19 +1646,19 @@
       const candidates = evaluated.filter(x => (selected === "all" ? Object.values(x.pattern.flags).some(Boolean) : x.pattern.flags[selected]) && !x.pattern.risk).sort((a, b) => Object.values(b.pattern.flags).filter(Boolean).length - Object.values(a.pattern.flags).filter(Boolean).length || b.score.total - a.score.total);
       const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
       document.getElementById("usPatternRows").innerHTML = candidates.length ? candidates.map((entry, index) => { const item = entry.item; const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => `<span class="phase-badge">${labels[key]}</span>`).join(" "); return `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${tags}</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.boxRange20, "%")}</td><td>${fmt(item.ma20Gap, "%")}</td><td>${fmt(item.ma60Gap, "%")}</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`; }).join("") : `<tr><td colspan="12">현재 선택 조건을 통과한 종목이 없습니다.</td></tr>`;
-      const analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102;
+      const analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102 + nasdaqCustomSymbols.length;
       document.getElementById("scanUsPatterns").disabled = nasdaqScan.running;
       document.getElementById("scanUsPatterns").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "분석 완료 · 다시 갱신" : analyzed ? `이어 분석 ${analyzed}/${total}` : "조건 분석 갱신";
-      document.getElementById("usPatternNote").textContent = nasdaqScan.running ? `미장 조건 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `조건 분석 완료 · 조건 통과 ${candidates.length}개 · 종목명을 누르면 미국 차트가 열립니다.` : `나스닥100 ${analyzed}/${total}종목 분석됨 · 버튼을 누르면 이어서 진행합니다.`;
+      document.getElementById("usPatternNote").textContent = nasdaqScan.running ? `미장 조건 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `조건 분석 완료 · 조건 통과 ${candidates.length}개 · 추가 종목도 포함됩니다.` : `나스닥100+추가 종목 ${analyzed}/${total}개 분석됨 · 버튼을 누르면 이어서 진행합니다.`;
     }
 
     async function scanNasdaq100(reset = false) {
       if (nasdaqScan.running) return;
-      if (reset || nasdaqScan.next >= nasdaqScan.total) nasdaqScan = { rows: [], next: 0, total: 102, running: false };
+      if (reset || nasdaqScan.next >= nasdaqScan.total) nasdaqScan = { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
       nasdaqScan.running = true; renderNasdaq100();
       try {
         while (nasdaqScan.next < nasdaqScan.total) {
-          const payload = await jsonpRequest({ action: "nasdaq100Batch", start: nasdaqScan.next, count: 5 }, 60000);
+          const payload = await jsonpRequest({ action: "nasdaq100Batch", start: nasdaqScan.next, count: 5, extra: nasdaqCustomSymbols.join(",") }, 60000);
           if (!payload || !payload.ok) throw new Error(payload && payload.error || "나스닥100 응답 오류");
           nasdaqScan.rows.push(...(payload.rows || [])); nasdaqScan.next = payload.next; nasdaqScan.total = payload.total;
           localStorage.setItem("nasdaq100Scan", JSON.stringify({ ...nasdaqScan, running: false })); renderNasdaq100();
@@ -2145,47 +2256,130 @@
       }
     }
 
+    const indicatorEscape = value => String(value == null ? "" : value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
+
+    function indicatorRecentPercent(item) {
+      const values = (item && item.history || []).map(Number).filter(Number.isFinite);
+      if (values.length < 2 || !values.at(-2)) return null;
+      return (values.at(-1) / values.at(-2) - 1) * 100;
+    }
+
+    function indicatorRule(item) {
+      const name = item && item.name || "";
+      const value = Number(item && item.value);
+      const result = (guide, status, tone, short, bands) => ({ guide, status, tone, short, bands });
+      if (name === "VKOSPI") {
+        const state = value < 15 ? ["안정", "good"] : value < 20 ? ["보통", "neutral"] : value < 30 ? ["주의", "warning"] : ["고위험", "danger"];
+        return result("국내 옵션시장이 예상하는 변동성입니다. 낮을수록 안정적이고 급등할수록 공포가 커집니다.", state[0], state[1], "15 미만 안정 · 20 이상 주의 · 30 이상 위험", [["15 미만","안정"],["15~20","보통"],["20~30","주의"],["30 이상","고위험"]]);
+      }
+      if (name === "ADR (코스피)" || name === "ADR (코스피200)") {
+        const state = value < 70 ? ["시장 침체", "danger"] : value < 100 ? ["약세", "warning"] : value < 150 ? ["양호", "good"] : ["단기 과열", "warning"];
+        return result("상승 종목 수÷하락 종목 수×100입니다. 100이 시장 체력의 균형선입니다.", state[0], state[1], "70 미만 침체 · 100 이상 양호 · 150 이상 과열", [["70 미만","침체"],["70~100","약세"],["100~150","양호"],["150 이상","단기 과열"]]);
+      }
+      if (name === "외국인 순매수" || name === "기관 순매수") {
+        const state = value > 0 ? ["순매수", "good"] : value < 0 ? ["순매도", "danger"] : ["중립", "neutral"];
+        return result("0보다 크면 자금 유입, 0보다 작으면 자금 유출입니다. 외국인과 기관의 방향이 같고 며칠 연속인지 함께 봅니다.", state[0], state[1], "0 초과 순매수 · 0 미만 순매도", [["0 초과","순매수·우호"],["0","중립"],["0 미만","순매도·부담"]]);
+      }
+      if (name === "신용융자 잔고") {
+        const recent = indicatorRecentPercent(item);
+        const state = recent == null ? ["추세 확인", "neutral"] : recent <= 0 ? ["감소·안정", "good"] : recent < 5 ? ["증가·보통", "neutral"] : recent < 10 ? ["빠른 증가", "warning"] : ["과열 위험", "danger"];
+        return result("개인 레버리지 규모입니다. 절대액보다 최근 기록 대비 증가 속도를 보며 급증 뒤 하락은 반대매매 위험이 커질 수 있습니다.", state[0], state[1], "최근 대비 감소 안정 · +5% 이상 주의 · +10% 이상 위험", [["증가율 0% 이하","감소·안정"],["0~5%","보통"],["5~10%","주의"],["10% 이상","과열 위험"]]);
+      }
+      if (name === "원/달러") {
+        const state = value < 1300 ? ["원화 강세", "good"] : value < 1400 ? ["중립", "neutral"] : value < 1450 ? ["원화 약세 주의", "warning"] : ["환율 부담", "danger"];
+        return result("상승은 원화 약세입니다. 외국인 수급과 수입 원가에 부담이 될 수 있으며 절대 기준은 시장 국면에 따라 조정됩니다.", state[0], state[1], "1,300원 미만 우호 · 1,400원 이상 주의 · 1,450원 이상 부담", [["1,300원 미만","우호"],["1,300~1,400원","중립"],["1,400~1,450원","주의"],["1,450원 이상","부담"]]);
+      }
+      if (name === "VIX") {
+        const state = value < 15 ? ["안정", "good"] : value < 20 ? ["보통", "neutral"] : value < 30 ? ["공포 주의", "warning"] : ["고공포", "danger"];
+        return result("미국 옵션시장이 예상하는 30일 변동성입니다. 급등하면 위험회피 심리가 강해졌다는 뜻입니다.", state[0], state[1], "15 미만 안정 · 20 이상 주의 · 30 이상 고공포", [["15 미만","안정"],["15~20","보통"],["20~30","주의"],["30 이상","고공포"]]);
+      }
+      if (name === "Fear & Greed") {
+        const state = value < 25 ? ["극단적 공포", "danger"] : value < 45 ? ["공포", "warning"] : value < 56 ? ["중립", "neutral"] : value < 75 ? ["탐욕", "good"] : ["극단적 탐욕", "warning"];
+        return result("0에 가까울수록 공포, 100에 가까울수록 탐욕입니다. 양끝은 추세 강화와 반전 가능성이 함께 있는 극단 구간입니다.", state[0], state[1], "25 미만 극단 공포 · 45~55 중립 · 75 이상 극단 탐욕", [["0~24","극단적 공포"],["25~44","공포"],["45~55","중립"],["56~74","탐욕"],["75~100","극단적 탐욕"]]);
+      }
+      if (name === "50일선 상회 (나스닥100)" || name === "200일선 상회 (나스닥100)") {
+        const state = value < 30 ? ["시장 침체", "danger"] : value < 50 ? ["약세", "warning"] : value < 70 ? ["건강", "good"] : value < 80 ? ["강세", "good"] : ["과열 주의", "warning"];
+        return result("해당 이동평균선 위에 있는 종목 비율입니다. 높을수록 상승에 참여하는 종목이 많습니다.", state[0], state[1], "30% 미만 침체 · 50% 이상 건강 · 80% 이상 과열 주의", [["30% 미만","침체"],["30~50%","약세"],["50~70%","건강"],["70~80%","강세"],["80% 이상","과열 주의"]]);
+      }
+      if (name === "Put/Call Ratio") {
+        const state = value < .7 ? ["낙관 과열", "warning"] : value < 1 ? ["중립", "good"] : value < 1.2 ? ["경계", "warning"] : ["공포", "danger"];
+        return result("Put 거래량÷Call 거래량입니다. 높을수록 하락 방어 수요와 공포가 강합니다.", state[0], state[1], "0.7 미만 낙관 과열 · 0.7~1.0 중립 · 1.2 이상 공포", [["0.7 미만","낙관 과열"],["0.7~1.0","중립"],["1.0~1.2","경계"],["1.2 이상","공포"]]);
+      }
+      if (name === "하이일드 스프레드") {
+        const state = value < 3 ? ["신용 안정", "good"] : value < 5 ? ["보통", "neutral"] : value < 8 ? ["신용 위험", "warning"] : ["위기 구간", "danger"];
+        return result("미국 투기등급채권과 국채의 금리 차입니다. 상승할수록 기업 부도 우려와 금융시장 스트레스가 커집니다.", state[0], state[1], "3%p 미만 안정 · 5%p 이상 위험 · 8%p 이상 위기", [["3%p 미만","안정"],["3~5%p","보통"],["5~8%p","위험"],["8%p 이상","위기"]]);
+      }
+      return result("다른 지표와 함께 방향과 추세를 확인합니다.", "추세 확인", "neutral", "단독 수치보다 최근 방향을 확인", [["최근 추세","상승·하락 방향 확인"]]);
+    }
+
     function indicatorSparkline(values) {
       const nums = (values || []).map(Number).filter(Number.isFinite);
-      if (nums.length < 2) return `<svg class="sparkline" viewBox="0 0 180 54" aria-hidden="true"><path class="line" d="M0 40 L180 40" opacity=".22"/></svg>`;
-      const min = Math.min(...nums), max = Math.max(...nums), span = max - min || 1;
-      const points = nums.map((value, index) => {
-        const x = index / (nums.length - 1) * 180;
+      if (!nums.length) return `<svg class="sparkline" viewBox="0 0 180 54" aria-hidden="true"><path class="line" d="M0 40 L180 40" opacity=".22"/></svg>`;
+      const series = nums.length === 1 ? [nums[0], nums[0]] : nums;
+      const min = Math.min(...series), max = Math.max(...series), span = max - min || Math.abs(max) * .04 || 1;
+      const points = series.map((value, index) => {
+        const x = index / (series.length - 1) * 180;
         const y = 48 - (value - min) / span * 42;
         return [x, y];
       });
       const line = points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
       const area = `${line} L180 54 L0 54 Z`;
-      return `<svg class="sparkline" viewBox="0 0 180 54" preserveAspectRatio="none" aria-hidden="true"><path class="area" d="${area}"/><path class="line" d="${line}"/></svg>`;
+      const last = points.at(-1);
+      return `<svg class="sparkline" viewBox="0 0 180 54" preserveAspectRatio="none" aria-label="최근 추세 그래프"><path class="area" d="${area}"/><path class="line" d="${line}"/><circle cx="${last[0]}" cy="${last[1]}" r="2.8" fill="var(--accent)"/></svg>`;
     }
 
-    function renderIndicatorCard(item) {
-      const guides = {
-        "VKOSPI": "상승하면 국내 증시의 예상 변동성과 불안이 커졌다는 뜻입니다.",
-        "ADR (코스피200)": "100 이상은 상승 종목 우세, 100 미만은 하락 종목 우세입니다.",
-        "외국인 순매수": "+는 외국인 순매수, -는 순매도입니다. 대형주 방향과 함께 봅니다.",
-        "기관 순매수": "+는 기관 순매수, -는 순매도입니다. 외국인과 동시 순매수인지 확인합니다.",
-        "신용융자 잔고": "빠른 증가는 레버리지와 과열 가능성, 급감은 반대매매 위험 완화를 뜻할 수 있습니다.",
-        "원/달러": "상승은 원화 약세입니다. 외국인 수급과 수입 원가에 부담이 될 수 있습니다.",
-        "VIX": "상승하면 미국 증시의 예상 변동성과 공포가 커졌다는 뜻입니다.",
-        "Fear & Greed": "0에 가까울수록 공포, 100에 가까울수록 탐욕이 강한 상태입니다.",
-        "50일선 상회 (나스닥100)": "비율이 높을수록 중기 상승 추세에 참여하는 종목이 많습니다.",
-        "200일선 상회 (나스닥100)": "비율이 높을수록 장기 시장 체력이 강한 상태입니다.",
-        "Put/Call Ratio": "상승하면 방어용 Put 수요가 늘어 투자심리가 신중해졌다는 뜻입니다.",
-        "하이일드 스프레드": "상승하면 기업 신용위험과 금융시장 스트레스가 커졌다는 뜻입니다."
-      };
-      const guide = guides[item && item.name] || "다른 지표와 함께 방향과 추세를 확인합니다.";
-      if (!item || !item.available) return `<article class="indicator-card unavailable"><div class="indicator-title">${item && item.name || "-"}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${item && item.error || "데이터 없음"}</div><div class="indicator-source">점수 계산에서 제외</div><div class="indicator-guide"><strong>읽는 법</strong> · ${guide}</div></article>`;
+    function indicatorLargeChart(values, unit) {
+      const nums = (values || []).map(Number).filter(Number.isFinite);
+      if (!nums.length) return `<div class="ledger-empty">표시할 그래프 데이터가 없습니다.<br>지표를 매일 수집하면 이력이 누적됩니다.</div>`;
+      const series = nums.length === 1 ? [nums[0], nums[0]] : nums;
+      const minRaw = Math.min(...series), maxRaw = Math.max(...series), padding = (maxRaw - minRaw || Math.abs(maxRaw) * .04 || 1) * .12;
+      const min = minRaw - padding, max = maxRaw + padding, span = max - min || 1;
+      const left = 58, right = 660, top = 22, bottom = 225;
+      const points = series.map((value, index) => [left + index / (series.length - 1) * (right - left), bottom - (value - min) / span * (bottom - top)]);
+      const line = points.map((point, index) => `${index ? "L" : "M"}${point[0].toFixed(1)} ${point[1].toFixed(1)}`).join(" ");
+      const area = `${line} L${right} ${bottom} L${left} ${bottom} Z`;
+      const grid = [top, (top + bottom) / 2, bottom].map(y => `<line class="grid" x1="${left}" y1="${y}" x2="${right}" y2="${y}"/>`).join("");
+      const format = value => Number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + indicatorEscape(unit || "");
+      const labels = `<text x="4" y="${top + 4}">${format(max)}</text><text x="4" y="${(top + bottom) / 2 + 4}">${format((max + min) / 2)}</text><text x="4" y="${bottom + 4}">${format(min)}</text><text x="${left}" y="252">과거</text><text x="${right - 24}" y="252">최근</text>`;
+      const dots = points.map((point, index) => index === points.length - 1 ? `<circle class="dot" cx="${point[0]}" cy="${point[1]}" r="5"/>` : "").join("");
+      return `<svg viewBox="0 0 680 260" role="img" aria-label="최근 ${nums.length}개 기록 추세">${grid}<path class="area" d="${area}"/><path class="line" d="${line}"/>${dots}${labels}</svg>`;
+    }
+
+    function renderIndicatorCard(item, market, index) {
+      const rule = indicatorRule(item || {});
+      const title = indicatorEscape(item && item.name || "-");
+      const cardStart = `<article class="indicator-card${item && item.available ? "" : " unavailable"}" role="button" tabindex="0" data-market="${market}" data-index="${index}" aria-label="${title} 상세 보기">`;
+      if (!item || !item.available) return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${indicatorEscape(item && item.error || "데이터 없음")}</div><div class="indicator-source">점수 계산에서 제외</div><div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state neutral">기준 확인</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
       const value = Number(item.value);
       const change = Number(item.change);
       const unit = item.unit || "";
       const changeText = Number.isFinite(change) ? `${change > 0 ? "▲" : change < 0 ? "▼" : "―"} ${Math.abs(change).toFixed(2)}${unit}` : "전일 비교 없음";
-      return `<article class="indicator-card"><div class="indicator-title">${item.name}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${unit}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${item.detail || "최근 추세"}</div><div class="indicator-source">출처: ${item.source || "-"}</div><div class="indicator-guide"><strong>읽는 법</strong> · ${guide}</div></article>`;
+      return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${indicatorEscape(unit)}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${indicatorEscape(item.detail || "최근 추세")}</div><div class="indicator-source">출처: ${indicatorEscape(item.source || "-")}</div><div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state ${rule.tone}">현재 · ${indicatorEscape(rule.status)}</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
+    }
+
+    function openIndicatorDialog(market, index) {
+      const list = market === "korea" ? marketIndicators.korea || [] : marketIndicators.us || [];
+      const item = list[Number(index)];
+      if (!item) return;
+      const rule = indicatorRule(item);
+      const value = Number(item.value);
+      const unit = item.unit || "";
+      document.getElementById("indicatorDialogTitle").textContent = item.name || "시장 지표";
+      document.getElementById("indicatorDialogMeta").textContent = `${market === "korea" ? "한국 증시" : "미국 증시"} · 출처 ${item.source || "-"} · 최근 ${(item.history || []).length || 0}개 기록`;
+      document.getElementById("indicatorDialogValue").textContent = item.available && Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + unit : "수집 불가";
+      const state = document.getElementById("indicatorDialogState");
+      state.className = `indicator-state ${rule.tone}`;
+      state.textContent = `현재 · ${rule.status}`;
+      document.getElementById("indicatorDialogChart").innerHTML = indicatorLargeChart(item.history, unit);
+      document.getElementById("indicatorDialogGuide").innerHTML = `<strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}`;
+      document.getElementById("indicatorDialogBands").innerHTML = rule.bands.map(band => `<div class="indicator-band"><strong>${indicatorEscape(band[0])}</strong><span>${indicatorEscape(band[1])}</span></div>`).join("");
+      const dialog = document.getElementById("indicatorDialog");
+      if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
     }
 
     function renderMarketIndicators() {
-      document.getElementById("koreaIndicatorGrid").innerHTML = (marketIndicators.korea || []).map(renderIndicatorCard).join("") || `<div class="empty">시장 지표 갱신을 눌러주세요.</div>`;
-      document.getElementById("usIndicatorGrid").innerHTML = (marketIndicators.us || []).map(renderIndicatorCard).join("") || `<div class="empty">시장 지표 갱신을 눌러주세요.</div>`;
+      document.getElementById("koreaIndicatorGrid").innerHTML = (marketIndicators.korea || []).map((item, index) => renderIndicatorCard(item, "korea", index)).join("") || `<div class="empty">시장 지표 갱신을 눌러주세요.</div>`;
+      document.getElementById("usIndicatorGrid").innerHTML = (marketIndicators.us || []).map((item, index) => renderIndicatorCard(item, "us", index)).join("") || `<div class="empty">시장 지표 갱신을 눌러주세요.</div>`;
       document.getElementById("marketIndicatorStatus").textContent = marketIndicators.updatedAt ? `마지막 수집 ${marketIndicators.updatedAt} · 퀀트 점수 미반영` : "지표는 관찰용으로만 수집하며 퀀트 점수에 반영하지 않습니다.";
     }
 
@@ -2277,11 +2471,37 @@
       scanKospi200();
     });
     document.getElementById("scanNasdaq").addEventListener("click", () => scanNasdaq100(false));
+    document.getElementById("addNasdaqCustom").addEventListener("click", addNasdaqCustomSymbols);
+    document.getElementById("nasdaqCustomInput").addEventListener("keydown", event => {
+      if (event.key === "Enter") { event.preventDefault(); addNasdaqCustomSymbols(); }
+    });
+    document.getElementById("nasdaqCustomList").addEventListener("click", event => {
+      const button = event.target.closest("[data-remove-symbol]");
+      if (button) removeNasdaqCustomSymbol(button.dataset.removeSymbol);
+    });
     document.getElementById("scanUsPatterns").addEventListener("click", () => scanNasdaq100(true));
     document.getElementById("usPatternFilter").addEventListener("change", renderUsPatterns);
     document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
     document.getElementById("loadLedger").addEventListener("click", loadAssetLedger);
     document.getElementById("refreshIndicators").addEventListener("click", () => loadMarketIndicators(true));
+    ["koreaIndicatorGrid", "usIndicatorGrid"].forEach(id => {
+      const grid = document.getElementById(id);
+      const open = event => {
+        const card = event.target.closest(".indicator-card");
+        if (card) openIndicatorDialog(card.dataset.market, card.dataset.index);
+      };
+      grid.addEventListener("click", open);
+      grid.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          open(event);
+        }
+      });
+    });
+    document.getElementById("indicatorDialogClose").addEventListener("click", () => document.getElementById("indicatorDialog").close());
+    document.getElementById("indicatorDialog").addEventListener("click", event => {
+      if (event.target === event.currentTarget) event.currentTarget.close();
+    });
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
     document.getElementById("toggleSettings").addEventListener("click", () => {
       const panel = document.getElementById("settingsPanel");
@@ -2336,6 +2556,7 @@
       document.getElementById("appsScriptUrl").value = googleConfig.appsScriptUrl;
       document.getElementById("googleSheetId").value = googleConfig.sheetId;
       render();
+      renderNasdaqCustomSymbols();
       renderNasdaq100();
       renderMarketIndicators();
       await registerPwa();
