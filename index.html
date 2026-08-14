@@ -501,6 +501,7 @@
     .us .sparkline .area { fill: rgba(105,167,255,.12); }
     .us .sparkline .line { stroke: #69a7ff; }
     .indicator-source { color: #7890aa; font-size: 11px; }
+    .indicator-guide { padding-top: 8px; border-top: 1px dashed #2b3a4d; color: #a9bbcf; font-size: 11px; line-height: 1.45; }
     .month-row { display: grid; grid-template-columns: 72px minmax(120px, 1fr) 72px; gap: 10px; align-items: center; font-size: 12px; }
     .month-track { height: 14px; position: relative; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
     .month-fill { position: absolute; left: 50%; height: 100%; border-radius: 999px; }
@@ -2159,12 +2160,27 @@
     }
 
     function renderIndicatorCard(item) {
-      if (!item || !item.available) return `<article class="indicator-card unavailable"><div class="indicator-title">${item && item.name || "-"}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${item && item.error || "데이터 없음"}</div><div class="indicator-source">점수 계산에서 제외</div></article>`;
+      const guides = {
+        "VKOSPI": "상승하면 국내 증시의 예상 변동성과 불안이 커졌다는 뜻입니다.",
+        "ADR (코스피200)": "100 이상은 상승 종목 우세, 100 미만은 하락 종목 우세입니다.",
+        "외국인 순매수": "+는 외국인 순매수, -는 순매도입니다. 대형주 방향과 함께 봅니다.",
+        "기관 순매수": "+는 기관 순매수, -는 순매도입니다. 외국인과 동시 순매수인지 확인합니다.",
+        "신용융자 잔고": "빠른 증가는 레버리지와 과열 가능성, 급감은 반대매매 위험 완화를 뜻할 수 있습니다.",
+        "원/달러": "상승은 원화 약세입니다. 외국인 수급과 수입 원가에 부담이 될 수 있습니다.",
+        "VIX": "상승하면 미국 증시의 예상 변동성과 공포가 커졌다는 뜻입니다.",
+        "Fear & Greed": "0에 가까울수록 공포, 100에 가까울수록 탐욕이 강한 상태입니다.",
+        "50일선 상회 (나스닥100)": "비율이 높을수록 중기 상승 추세에 참여하는 종목이 많습니다.",
+        "200일선 상회 (나스닥100)": "비율이 높을수록 장기 시장 체력이 강한 상태입니다.",
+        "Put/Call Ratio": "상승하면 방어용 Put 수요가 늘어 투자심리가 신중해졌다는 뜻입니다.",
+        "하이일드 스프레드": "상승하면 기업 신용위험과 금융시장 스트레스가 커졌다는 뜻입니다."
+      };
+      const guide = guides[item && item.name] || "다른 지표와 함께 방향과 추세를 확인합니다.";
+      if (!item || !item.available) return `<article class="indicator-card unavailable"><div class="indicator-title">${item && item.name || "-"}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${item && item.error || "데이터 없음"}</div><div class="indicator-source">점수 계산에서 제외</div><div class="indicator-guide"><strong>읽는 법</strong> · ${guide}</div></article>`;
       const value = Number(item.value);
       const change = Number(item.change);
       const unit = item.unit || "";
       const changeText = Number.isFinite(change) ? `${change > 0 ? "▲" : change < 0 ? "▼" : "―"} ${Math.abs(change).toFixed(2)}${unit}` : "전일 비교 없음";
-      return `<article class="indicator-card"><div class="indicator-title">${item.name}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${unit}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${item.detail || "최근 추세"}</div><div class="indicator-source">출처: ${item.source || "-"}</div></article>`;
+      return `<article class="indicator-card"><div class="indicator-title">${item.name}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${unit}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${item.detail || "최근 추세"}</div><div class="indicator-source">출처: ${item.source || "-"}</div><div class="indicator-guide"><strong>읽는 법</strong> · ${guide}</div></article>`;
     }
 
     function renderMarketIndicators() {
