@@ -468,6 +468,13 @@
     .review-panel { margin-bottom: 14px; border-color: rgba(73,211,209,.42); }
     .leader-panel { margin-bottom: 14px; border-color: rgba(241,184,75,.5); }
     .phase-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #273549; white-space: nowrap; font-weight: 800; }
+    .box-state { display: inline-block; padding: 4px 8px; border: 1px solid #3b4d63; border-radius: 999px; white-space: nowrap; font-size: 11px; font-weight: 900; }
+    .box-state.lower { color: #55e7ad; background: rgba(24,199,121,.12); border-color: rgba(24,199,121,.4); }
+    .box-state.middle { color: #a9c7ea; background: rgba(105,167,255,.1); border-color: rgba(105,167,255,.35); }
+    .box-state.upper { color: #ffd17a; background: rgba(241,184,75,.1); border-color: rgba(241,184,75,.4); }
+    .box-state.breakout { color: #54eadb; background: rgba(73,211,209,.14); border-color: rgba(73,211,209,.5); }
+    .box-state.breakdown { color: #ff7886; background: rgba(255,77,96,.12); border-color: rgba(255,77,96,.45); }
+    .box-state.unknown { color: var(--muted); background: rgba(255,255,255,.04); }
     .custom-symbol-manager { display: grid; gap: 9px; margin: 12px 0 16px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(9,16,24,.48); }
     .custom-symbol-entry { display: grid; grid-template-columns: minmax(180px, 1fr) auto; gap: 8px; }
     .custom-symbol-entry input { width: 100%; min-height: 40px; border-radius: 8px; border: 1px solid #2b3747; background: #0c121a; color: var(--text); padding: 0 10px; text-transform: uppercase; }
@@ -767,11 +774,16 @@
       <section class="quant-summary" id="patternSummary"></section>
       <section class="panel">
         <div class="panel-head">
-          <div><h2>코스피200 차트 조건검색</h2><div class="hint">20일 박스 폭 · 20/60일 이동평균 · RSI · 거래량 · 낙폭을 함께 확인합니다.</div></div>
+          <div><h2>코스피200 차트 조건검색</h2><div class="hint">60일 박스 상·하단과 현재 위치 · 이동평균 · RSI · 거래량 · 낙폭을 함께 확인합니다.</div></div>
           <div class="actions">
             <select id="patternFilter" aria-label="차트 조건 선택">
               <option value="all">전체 후보</option>
               <option value="box">박스권</option>
+              <option value="box-lower">박스권 하단</option>
+              <option value="box-middle">박스권 중단</option>
+              <option value="box-upper">박스권 상단</option>
+              <option value="box-breakout">박스 상단 돌파</option>
+              <option value="box-breakdown">박스 하단 이탈</option>
               <option value="uptrend">우상향</option>
               <option value="pullback">눌림목</option>
               <option value="golden">골든크로스</option>
@@ -781,7 +793,7 @@
           </div>
         </div>
         <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>20일 박스폭</th><th>20일 추세</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th><th>판정</th></tr></thead>
+          <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>박스 위치</th><th>60일 박스폭</th><th>하단</th><th>상단</th><th>20일 추세</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th><th>판정</th></tr></thead>
           <tbody id="patternRows"></tbody>
         </table></div>
         <div class="quant-note" id="patternNote">먼저 코스피200 분석을 완료하면 조건별 후보가 표시됩니다. 종목명을 누르면 네이버 차트가 열립니다.</div>
@@ -818,16 +830,16 @@
       <section class="quant-summary" id="usPatternSummary"></section>
       <section class="panel">
         <div class="panel-head">
-          <div><h2>나스닥100 미장 조건검색</h2><div class="hint">박스권 · 우상향 · 눌림목 · 골든크로스 · 거래량 증가</div></div>
+          <div><h2>나스닥100 미장 조건검색</h2><div class="hint">60일 박스 상·하단 · 우상향 · 눌림목 · 골든크로스 · 거래량 증가</div></div>
           <div class="actions">
             <select id="usPatternFilter" aria-label="미장 차트 조건 선택">
-              <option value="all">전체 후보</option><option value="box">박스권</option><option value="uptrend">우상향</option><option value="pullback">눌림목</option><option value="golden">골든크로스</option><option value="volume">거래량 증가</option>
+              <option value="all">전체 후보</option><option value="box">박스권</option><option value="box-lower">박스권 하단</option><option value="box-middle">박스권 중단</option><option value="box-upper">박스권 상단</option><option value="box-breakout">박스 상단 돌파</option><option value="box-breakdown">박스 하단 이탈</option><option value="uptrend">우상향</option><option value="pullback">눌림목</option><option value="golden">골든크로스</option><option value="volume">거래량 증가</option>
             </select>
             <button class="primary" id="scanUsPatterns">조건 분석 갱신</button>
           </div>
         </div>
         <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>현재가</th><th>1개월</th><th>6개월</th><th>20일 박스폭</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th></tr></thead>
+          <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>박스 위치</th><th>현재가</th><th>1개월</th><th>6개월</th><th>60일 박스폭</th><th>하단</th><th>상단</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th></tr></thead>
           <tbody id="usPatternRows"></tbody>
         </table></div>
         <div class="quant-note" id="usPatternNote">나스닥100 분석 결과를 함께 사용합니다. 조건 분석 갱신을 누르면 최신 데이터로 처음부터 다시 계산합니다.</div>
@@ -929,6 +941,14 @@
     if (!Array.isArray(nasdaqCustomSymbols)) nasdaqCustomSymbols = [];
     nasdaqCustomSymbols = Array.from(new Set(nasdaqCustomSymbols.map(value => String(value).toUpperCase()).filter(value => /^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value)))).slice(0, 20);
     let nasdaqScan = JSON.parse(localStorage.getItem("nasdaq100Scan") || "null") || { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
+    const boxScanVersion = "box-position-60d-v1";
+    if (localStorage.getItem("boxScanVersion") !== boxScanVersion) {
+      kospiScan = { rows: [], next: 0, total: 200, running: false };
+      nasdaqScan = { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
+      localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
+      localStorage.setItem("nasdaq100Scan", JSON.stringify(nasdaqScan));
+      localStorage.setItem("boxScanVersion", boxScanVersion);
+    }
     let historyRows = [];
     let assetLedger = { daily: [], holdings: [], monthly: [], updatedAt: "" };
     let marketIndicators = JSON.parse(localStorage.getItem("marketIndicators") || "null") || { korea: [], us: [], updatedAt: "" };
@@ -1531,22 +1551,45 @@
     }
 
     function chartPatternFlags(item) {
-      const boxRange = Number(item.boxRange20);
+      const boxRange = Number(item.boxRange60);
       const trend20 = Number(item.trend20);
       const ma20 = Number(item.ma20Gap);
       const ma60 = Number(item.ma60Gap);
       const rsi = Number(item.rsi);
       const volume = Number(item.volumeRatio);
       const mdd = Number(item.mdd);
+      const box = boxPositionView(item);
       const flags = {
-        box: Number.isFinite(boxRange) && boxRange > 0 && boxRange <= 12 && Math.abs(ma20) <= 6,
+        box: Number.isFinite(boxRange) && boxRange > 0 && boxRange <= 20 && Math.abs(ma20) <= 8,
         uptrend: ma20 >= 0 && ma60 >= 3 && trend20 > 0 && Number(item.mom6 || 0) > 0,
         pullback: ma60 >= 3 && ma20 >= -5 && ma20 <= 3 && rsi >= 35 && rsi <= 60,
         golden: Number(item.goldenCross || 0) === 1,
         volume: volume >= 120
       };
       const risk = mdd < -35 || rsi >= 75 || Number(item.volatility || 0) >= 70;
-      return { flags, risk };
+      return { flags, risk, box };
+    }
+
+    function boxPositionView(item) {
+      const position = Number(item && item.boxPosition60);
+      let code = String(item && item.boxState60 || "unknown");
+      if (!['lower', 'middle', 'upper', 'breakout', 'breakdown'].includes(code)) {
+        code = Number.isFinite(position) ? (position <= 25 ? 'lower' : position >= 75 ? 'upper' : 'middle') : 'unknown';
+      }
+      const labels = { lower: '박스 하단', middle: '박스 중단', upper: '박스 상단', breakout: '상단 돌파', breakdown: '하단 이탈', unknown: '계산 대기' };
+      return { code, label: labels[code] || labels.unknown, position };
+    }
+
+    function patternFilterMatches(pattern, selected) {
+      const boxFilters = { 'box-lower': 'lower', 'box-middle': 'middle', 'box-upper': 'upper', 'box-breakout': 'breakout', 'box-breakdown': 'breakdown' };
+      if (boxFilters[selected]) return pattern.flags.box && pattern.box.code === boxFilters[selected];
+      if (selected === 'all') return Object.values(pattern.flags).some(Boolean);
+      return Boolean(pattern.flags[selected]);
+    }
+
+    function boxPositionCell(pattern) {
+      const position = Number.isFinite(pattern.box.position) ? `<br><span class="hint">${pattern.box.position.toFixed(0)}%</span>` : '';
+      return `<span class="box-state ${pattern.box.code}">${pattern.box.label}</span>${position}`;
     }
 
     function usStockLink(item) {
@@ -1645,10 +1688,13 @@
       const selected = (document.getElementById("usPatternFilter") || {}).value || "all";
       const evaluated = nasdaqScan.rows.filter(item => !item.error).map(item => ({ item, pattern: chartPatternFlags(item), score: nasdaqTechnicalScore(item) }));
       const counts = Object.keys(labels).reduce((out, key) => { out[key] = evaluated.filter(x => x.pattern.flags[key] && !x.pattern.risk).length; return out; }, {});
-      document.getElementById("usPatternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("");
-      const candidates = evaluated.filter(x => (selected === "all" ? Object.values(x.pattern.flags).some(Boolean) : x.pattern.flags[selected]) && !x.pattern.risk).sort((a, b) => Object.values(b.pattern.flags).filter(Boolean).length - Object.values(a.pattern.flags).filter(Boolean).length || b.score.total - a.score.total);
+      const boxStateLabels = { lower: "박스 하단", middle: "박스 중단", upper: "박스 상단", breakout: "상단 돌파", breakdown: "하단 이탈" };
+      const boxStateCounts = Object.keys(boxStateLabels).reduce((out, key) => { out[key] = evaluated.filter(x => x.pattern.flags.box && x.pattern.box.code === key && !x.pattern.risk).length; return out; }, {});
+      document.getElementById("usPatternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("") + Object.entries(boxStateLabels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${boxStateCounts[key]}개</strong></article>`).join("");
+      const candidates = evaluated.filter(x => patternFilterMatches(x.pattern, selected) && !x.pattern.risk).sort((a, b) => Object.values(b.pattern.flags).filter(Boolean).length - Object.values(a.pattern.flags).filter(Boolean).length || b.score.total - a.score.total);
       const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
-      document.getElementById("usPatternRows").innerHTML = candidates.length ? candidates.map((entry, index) => { const item = entry.item; const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => `<span class="phase-badge">${labels[key]}</span>`).join(" "); return `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${tags}</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.boxRange20, "%")}</td><td>${fmt(item.ma20Gap, "%")}</td><td>${fmt(item.ma60Gap, "%")}</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`; }).join("") : `<tr><td colspan="12">현재 선택 조건을 통과한 종목이 없습니다.</td></tr>`;
+      const priceFmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-";
+      document.getElementById("usPatternRows").innerHTML = candidates.length ? candidates.map((entry, index) => { const item = entry.item; const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => `<span class="phase-badge">${labels[key]}</span>`).join(" "); return `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${tags}</td><td>${boxPositionCell(entry.pattern)}</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.boxRange60, "%")}</td><td>${priceFmt(item.boxLow60)}</td><td>${priceFmt(item.boxHigh60)}</td><td>${fmt(item.ma20Gap, "%")}</td><td>${fmt(item.ma60Gap, "%")}</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`; }).join("") : `<tr><td colspan="15">현재 선택 조건을 통과한 종목이 없습니다.</td></tr>`;
       const analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102 + nasdaqCustomSymbols.length;
       document.getElementById("scanUsPatterns").disabled = nasdaqScan.running;
       document.getElementById("scanUsPatterns").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "분석 완료 · 다시 갱신" : analyzed ? `이어 분석 ${analyzed}/${total}` : "조건 분석 갱신";
@@ -1689,9 +1735,14 @@
         result[key] = evaluated.filter(entry => entry.pattern.flags[key] && !entry.pattern.risk).length;
         return result;
       }, {});
-      document.getElementById("patternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("");
+      const boxStateLabels = { lower: "박스 하단", middle: "박스 중단", upper: "박스 상단", breakout: "상단 돌파", breakdown: "하단 이탈" };
+      const boxStateCounts = Object.keys(boxStateLabels).reduce((result, key) => {
+        result[key] = evaluated.filter(entry => entry.pattern.flags.box && entry.pattern.box.code === key && !entry.pattern.risk).length;
+        return result;
+      }, {});
+      document.getElementById("patternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("") + Object.entries(boxStateLabels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${boxStateCounts[key]}개</strong></article>`).join("");
       const candidates = evaluated.filter(entry => {
-        const matches = selected === "all" ? Object.values(entry.pattern.flags).some(Boolean) : entry.pattern.flags[selected];
+        const matches = patternFilterMatches(entry.pattern, selected);
         return matches && !entry.pattern.risk;
       }).sort((a, b) => {
         const aCount = Object.values(a.pattern.flags).filter(Boolean).length;
@@ -1699,11 +1750,12 @@
         return bCount - aCount || b.score.total - a.score.total;
       }).slice(0, 30);
       const fmt = value => Number.isFinite(Number(value)) ? Number(value).toFixed(1) : "-";
+      const priceFmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-";
       document.getElementById("patternRows").innerHTML = candidates.length ? candidates.map((entry, index) => {
         const item = entry.item;
         const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => labels[key]);
-        return `<tr><td>${index + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td>${tags.map(tag => `<span class="phase-badge">${tag}</span>`).join(" ")}</td><td>${fmt(item.boxRange20)}%</td><td>${fmt(item.trend20)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.mdd)}%</td><td class="risk-pass">관찰 후보</td></tr>`;
-      }).join("") : `<tr><td colspan="11">선택한 조건을 통과한 종목이 없습니다. 최신 코드로 코스피200을 다시 분석해 주세요.</td></tr>`;
+        return `<tr><td>${index + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td>${tags.map(tag => `<span class="phase-badge">${tag}</span>`).join(" ")}</td><td>${boxPositionCell(entry.pattern)}</td><td>${fmt(item.boxRange60)}%</td><td>${priceFmt(item.boxLow60)}</td><td>${priceFmt(item.boxHigh60)}</td><td>${fmt(item.trend20)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.mdd)}%</td><td class="risk-pass">관찰 후보</td></tr>`;
+      }).join("") : `<tr><td colspan="14">선택한 조건을 통과한 종목이 없습니다. 최신 코드로 코스피200을 다시 분석해 주세요.</td></tr>`;
       const risky = evaluated.filter(entry => entry.pattern.risk).length;
       document.getElementById("patternNote").textContent = kospiScan.running
         ? `조건 분석 진행 중 · ${analyzed}/${total}종목 완료 · 화면을 닫지 말고 잠시 기다려 주세요.`
