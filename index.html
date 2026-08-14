@@ -564,8 +564,9 @@
       <button class="tab-button" data-view="aiView">AI 포트폴리오 진단</button>
       <button class="tab-button" data-view="quantView">퀀트 분석</button>
       <button class="tab-button" data-view="kospiView">코스피200 TOP20</button>
-      <button class="tab-button" data-view="patternView">차트 조건검색</button>
-      <button class="tab-button" data-view="soxView">SOX 30</button>
+      <button class="tab-button" data-view="patternView">국장 조건검색</button>
+      <button class="tab-button" data-view="nasdaqView">나스닥100 TOP20</button>
+      <button class="tab-button" data-view="usPatternView">미장 조건검색</button>
       <button class="tab-button" data-view="historyView">성과 검증</button>
       <button class="tab-button" data-view="ledgerView">자산원장</button>
     </nav>
@@ -731,28 +732,38 @@
       </section>
     </section>
 
-    <section class="view" id="soxView" hidden>
-      <section class="quant-summary" id="soxSummary"></section>
+    <section class="view" id="nasdaqView" hidden>
+      <section class="quant-summary" id="nasdaqSummary"></section>
       <section class="panel">
         <div class="panel-head">
-          <div><h2>필라델피아 반도체 SOX 30 조건검색</h2><div class="hint" id="soxProgress">분석 전 · 미국 종목의 최근 1년 일봉을 기준으로 계산합니다.</div></div>
+          <div><h2>나스닥100 기술점수 TOP20</h2><div class="hint" id="nasdaqProgress">분석 전 · 추세 30% · 모멘텀 30% · 거래량 15% · 안정성 25%</div></div>
+          <button class="primary" id="scanNasdaq">나스닥100 분석 시작</button>
+        </div>
+        <div class="table-wrap"><table class="quant-table">
+          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>추세</th><th>모멘텀</th><th>거래량</th><th>안정성</th><th>신뢰도</th><th>현재가</th><th>1개월</th><th>6개월</th><th>12-1개월</th><th>변동성</th><th>MDD</th></tr></thead>
+          <tbody id="nasdaqRows"></tbody>
+        </table></div>
+        <div class="quant-note" id="nasdaqNote">5종목씩 분석하며 중단 후 다시 누르면 이어집니다. 미국장은 재무점수 대신 차트 기반 기술점수로 순위를 계산합니다.</div>
+      </section>
+    </section>
+
+    <section class="view" id="usPatternView" hidden>
+      <section class="quant-summary" id="usPatternSummary"></section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>나스닥100 미장 조건검색</h2><div class="hint">박스권 · 우상향 · 눌림목 · 골든크로스 · 거래량 증가</div></div>
           <div class="actions">
-            <select id="soxFilter" aria-label="SOX 차트 조건 선택">
-              <option value="all">전체 후보</option>
-              <option value="box">박스권</option>
-              <option value="uptrend">우상향</option>
-              <option value="pullback">눌림목</option>
-              <option value="golden">골든크로스</option>
-              <option value="volume">거래량 증가</option>
+            <select id="usPatternFilter" aria-label="미장 차트 조건 선택">
+              <option value="all">전체 후보</option><option value="box">박스권</option><option value="uptrend">우상향</option><option value="pullback">눌림목</option><option value="golden">골든크로스</option><option value="volume">거래량 증가</option>
             </select>
-            <button class="primary" id="scanSox">SOX 분석 시작</button>
+            <button class="primary" id="scanUsPatterns">조건 분석 갱신</button>
           </div>
         </div>
         <div class="table-wrap"><table class="quant-table">
           <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>현재가</th><th>1개월</th><th>6개월</th><th>20일 박스폭</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th></tr></thead>
-          <tbody id="soxRows"></tbody>
+          <tbody id="usPatternRows"></tbody>
         </table></div>
-        <div class="quant-note" id="soxNote">SOX 분석 시작을 누르면 5종목씩 진행되며, 중단되어도 다시 누르면 이어서 분석합니다.</div>
+        <div class="quant-note" id="usPatternNote">나스닥100 분석 결과를 함께 사용합니다. 조건 분석 갱신을 누르면 최신 데이터로 처음부터 다시 계산합니다.</div>
       </section>
     </section>
 
@@ -813,7 +824,7 @@
     let syncTimer = null;
     let jsonpSeq = 0;
     let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
-    let soxScan = JSON.parse(localStorage.getItem("sox30Scan") || "null") || { rows: [], next: 0, total: 30, running: false };
+    let nasdaqScan = JSON.parse(localStorage.getItem("nasdaq100Scan") || "null") || { rows: [], next: 0, total: 102, running: false };
     let historyRows = [];
     let assetLedger = { daily: [], holdings: [], monthly: [], updatedAt: "" };
 
@@ -1438,57 +1449,74 @@
       return `<a href="https://finance.yahoo.com/quote/${encodeURIComponent(ticker)}/chart/" target="_blank" rel="noopener">${escapeHtml(item.name || ticker)}</a>`;
     }
 
-    function renderSox30() {
-      const labels = { box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량 증가" };
-      const selected = (document.getElementById("soxFilter") || {}).value || "all";
-      const valid = soxScan.rows.filter(item => !item.error);
-      const evaluated = valid.map(item => ({ item, pattern: chartPatternFlags(item) }));
-      const counts = Object.keys(labels).reduce((out, key) => {
-        out[key] = evaluated.filter(entry => entry.pattern.flags[key] && !entry.pattern.risk).length;
-        return out;
-      }, {});
-      document.getElementById("soxSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("");
-      const candidates = evaluated.filter(entry => {
-        const match = selected === "all" ? Object.values(entry.pattern.flags).some(Boolean) : entry.pattern.flags[selected];
-        return match && !entry.pattern.risk;
-      }).sort((a, b) => Object.values(b.pattern.flags).filter(Boolean).length - Object.values(a.pattern.flags).filter(Boolean).length || Number(b.item.mom6 || 0) - Number(a.item.mom6 || 0));
-      const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
-      document.getElementById("soxRows").innerHTML = candidates.length ? candidates.map((entry, index) => {
-        const item = entry.item;
-        const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => `<span class="phase-badge">${labels[key]}</span>`).join(" ");
-        return `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${tags}</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.boxRange20, "%")}</td><td>${fmt(item.ma20Gap, "%")}</td><td>${fmt(item.ma60Gap, "%")}</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`;
-      }).join("") : `<tr><td colspan="12">현재 선택 조건을 통과한 종목이 없습니다.</td></tr>`;
-      const failed = soxScan.rows.filter(item => item.error).length;
-      const analyzed = soxScan.rows.length, total = soxScan.total || 30;
-      document.getElementById("soxProgress").textContent = `${analyzed}/${total}종목 분석 · 유효 ${analyzed - failed}`;
-      document.getElementById("scanSox").disabled = soxScan.running;
-      document.getElementById("scanSox").textContent = soxScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "분석 완료 · 다시 분석" : analyzed ? `이어 분석 ${analyzed}/${total}` : "SOX 분석 시작";
-      document.getElementById("soxNote").textContent = soxScan.running ? `SOX 분석 진행 중 · ${analyzed}/${total}종목 완료` : analyzed >= total ? `SOX 분석 완료 · 조건 통과 ${candidates.length}개 · 종목명을 누르면 미국 주가 차트가 열립니다.` : `SOX 30 중 ${analyzed}종목 분석됨 · 다시 누르면 이어집니다.`;
+    function nasdaqTechnicalScore(item) {
+      const trend = weightedAvailable([
+        { score: metricScore(item.ma20Gap, n => 50 + n * 3), weight: .45 },
+        { score: metricScore(item.ma60Gap, n => 50 + n * 2), weight: .35 },
+        { score: metricScore(item.trend20, n => 50 + n * 2), weight: .20 }
+      ]);
+      const momentum = weightedAvailable([
+        { score: metricScore(item.mom1, n => 50 + n * 1.5), weight: .35 },
+        { score: metricScore(item.mom6, n => 50 + n * .8), weight: .65 }
+      ]);
+      const volume = metricScore(item.volumeRatio, n => 50 + (n - 100) * .35);
+      const stability = weightedAvailable([
+        { score: metricScore(item.volatility, n => 85 - n * .7), weight: .45 },
+        { score: metricScore(item.mdd, n => 100 + n * 1.8), weight: .55 }
+      ]);
+      const values = [trend, momentum, volume, stability];
+      const total = weightedAvailable([{ score: trend, weight: 30 }, { score: momentum, weight: 30 }, { score: volume, weight: 15 }, { score: stability, weight: 25 }]);
+      return { total: Math.round(total || 0), trend: Math.round(trend || 0), momentum: Math.round(momentum || 0), volume: Math.round(volume || 0), stability: Math.round(stability || 0), confidence: Math.round(values.filter(v => v !== null).length / 4 * 100) };
     }
 
-    async function scanSox30() {
-      if (soxScan.running) return;
-      if (soxScan.next >= soxScan.total) soxScan = { rows: [], next: 0, total: 30, running: false };
-      soxScan.running = true;
-      renderSox30();
+    function renderNasdaq100() {
+      const valid = nasdaqScan.rows.filter(item => !item.error);
+      const ranked = valid.map(item => ({ item, score: nasdaqTechnicalScore(item) })).sort((a, b) => b.score.total - a.score.total).slice(0, 20);
+      const avg = ranked.length ? Math.round(ranked.reduce((sum, x) => sum + x.score.total, 0) / ranked.length) : 0;
+      const positive = valid.filter(item => Number(item.mom6 || 0) > 0).length;
+      const lowRisk = valid.filter(item => Number(item.mdd || -100) >= -25 && Number(item.volatility || 100) < 55).length;
+      document.getElementById("nasdaqSummary").innerHTML = [["분석 종목", `${valid.length}개`],["TOP20 평균", `${avg}점`],["6개월 상승", `${positive}개`],["저위험 후보", `${lowRisk}개`]].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+      const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
+      document.getElementById("nasdaqRows").innerHTML = ranked.length ? ranked.map(({ item, score }, index) => `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.trend}</td><td>${score.momentum}</td><td>${score.volume}</td><td>${score.stability}</td><td>${score.confidence}%</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.mom12, "%")}</td><td>${fmt(item.volatility, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`).join("") : `<tr><td colspan="14">나스닥100 분석을 시작해 주세요.</td></tr>`;
+      const failed = nasdaqScan.rows.filter(item => item.error).length, analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102;
+      document.getElementById("nasdaqProgress").textContent = `${analyzed}/${total}종목 분석 · 유효 ${analyzed - failed} · TOP ${ranked.length}`;
+      document.getElementById("scanNasdaq").disabled = nasdaqScan.running;
+      document.getElementById("scanNasdaq").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "다시 분석" : analyzed ? `이어 분석 ${analyzed}/${total}` : "나스닥100 분석 시작";
+      document.getElementById("nasdaqNote").textContent = nasdaqScan.running ? `나스닥100 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `분석 완료 · 유효 ${analyzed - failed}종목 · 미국 재무자료가 아닌 최근 1년 차트 기술점수입니다.` : `5종목씩 분석하며 중단 후 다시 누르면 이어집니다.`;
+      renderUsPatterns();
+    }
+
+    function renderUsPatterns() {
+      const labels = { box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량 증가" };
+      const selected = (document.getElementById("usPatternFilter") || {}).value || "all";
+      const evaluated = nasdaqScan.rows.filter(item => !item.error).map(item => ({ item, pattern: chartPatternFlags(item), score: nasdaqTechnicalScore(item) }));
+      const counts = Object.keys(labels).reduce((out, key) => { out[key] = evaluated.filter(x => x.pattern.flags[key] && !x.pattern.risk).length; return out; }, {});
+      document.getElementById("usPatternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("");
+      const candidates = evaluated.filter(x => (selected === "all" ? Object.values(x.pattern.flags).some(Boolean) : x.pattern.flags[selected]) && !x.pattern.risk).sort((a, b) => Object.values(b.pattern.flags).filter(Boolean).length - Object.values(a.pattern.flags).filter(Boolean).length || b.score.total - a.score.total);
+      const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
+      document.getElementById("usPatternRows").innerHTML = candidates.length ? candidates.map((entry, index) => { const item = entry.item; const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => `<span class="phase-badge">${labels[key]}</span>`).join(" "); return `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${tags}</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.boxRange20, "%")}</td><td>${fmt(item.ma20Gap, "%")}</td><td>${fmt(item.ma60Gap, "%")}</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`; }).join("") : `<tr><td colspan="12">현재 선택 조건을 통과한 종목이 없습니다.</td></tr>`;
+      const analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102;
+      document.getElementById("scanUsPatterns").disabled = nasdaqScan.running;
+      document.getElementById("scanUsPatterns").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "분석 완료 · 다시 갱신" : analyzed ? `이어 분석 ${analyzed}/${total}` : "조건 분석 갱신";
+      document.getElementById("usPatternNote").textContent = nasdaqScan.running ? `미장 조건 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `조건 분석 완료 · 조건 통과 ${candidates.length}개 · 종목명을 누르면 미국 차트가 열립니다.` : `나스닥100 ${analyzed}/${total}종목 분석됨 · 버튼을 누르면 이어서 진행합니다.`;
+    }
+
+    async function scanNasdaq100(reset = false) {
+      if (nasdaqScan.running) return;
+      if (reset || nasdaqScan.next >= nasdaqScan.total) nasdaqScan = { rows: [], next: 0, total: 102, running: false };
+      nasdaqScan.running = true; renderNasdaq100();
       try {
-        while (soxScan.next < soxScan.total) {
-          const payload = await jsonpRequest({ action: "soxBatch", start: soxScan.next, count: 5 }, 60000);
-          if (!payload || !payload.ok) throw new Error(payload && payload.error || "SOX 응답 오류");
-          soxScan.rows.push(...(payload.rows || []));
-          soxScan.next = payload.next;
-          soxScan.total = payload.total;
-          localStorage.setItem("sox30Scan", JSON.stringify({ ...soxScan, running: false }));
-          renderSox30();
+        while (nasdaqScan.next < nasdaqScan.total) {
+          const payload = await jsonpRequest({ action: "nasdaq100Batch", start: nasdaqScan.next, count: 5 }, 60000);
+          if (!payload || !payload.ok) throw new Error(payload && payload.error || "나스닥100 응답 오류");
+          nasdaqScan.rows.push(...(payload.rows || [])); nasdaqScan.next = payload.next; nasdaqScan.total = payload.total;
+          localStorage.setItem("nasdaq100Scan", JSON.stringify({ ...nasdaqScan, running: false })); renderNasdaq100();
           if (payload.done) break;
         }
       } catch (error) {
-        console.warn("SOX scan failed", error);
-        document.getElementById("soxNote").textContent = `${soxScan.next}/${soxScan.total}에서 일시 중단 · 다시 누르면 이어집니다. (${error.message})`;
+        console.warn("Nasdaq100 scan failed", error); document.getElementById("nasdaqNote").textContent = `${nasdaqScan.next}/${nasdaqScan.total}에서 일시 중단 · 다시 누르면 이어집니다. (${error.message})`;
       } finally {
-        soxScan.running = false;
-        localStorage.setItem("sox30Scan", JSON.stringify(soxScan));
-        renderSox30();
+        nasdaqScan.running = false; localStorage.setItem("nasdaq100Scan", JSON.stringify(nasdaqScan)); renderNasdaq100();
       }
     }
 
@@ -2142,8 +2170,9 @@
       localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
       scanKospi200();
     });
-    document.getElementById("scanSox").addEventListener("click", scanSox30);
-    document.getElementById("soxFilter").addEventListener("change", renderSox30);
+    document.getElementById("scanNasdaq").addEventListener("click", () => scanNasdaq100(false));
+    document.getElementById("scanUsPatterns").addEventListener("click", () => scanNasdaq100(true));
+    document.getElementById("usPatternFilter").addEventListener("change", renderUsPatterns);
     document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
     document.getElementById("loadLedger").addEventListener("click", loadAssetLedger);
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
@@ -2199,6 +2228,7 @@
       document.getElementById("appsScriptUrl").value = googleConfig.appsScriptUrl;
       document.getElementById("googleSheetId").value = googleConfig.sheetId;
       render();
+      renderNasdaq100();
       await registerPwa();
       if (hasGoogleConfig()) {
         await loadFromGoogleSheets({ silent: true });
