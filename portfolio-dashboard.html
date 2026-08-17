@@ -858,7 +858,7 @@
     <section class="view" id="marketView" hidden>
       <section class="panel">
         <div class="panel-head">
-          <div><h2>국장·미장 시장 지표</h2><div class="hint" id="marketIndicatorStatus">지표는 관찰용으로만 수집하며 퀘트 점수에 반영하지 않습니다.</div></div>
+          <div><h2>국장·미장 시장 지표</h2><div class="hint" id="marketIndicatorStatus">지표는 관찰용으로만 수집하며 퀀트 점수에 반영하지 않습니다.</div></div>
           <button id="refreshIndicators" class="primary">시장 지표 갱신</button>
         </div>
       </section>
@@ -2348,6 +2348,11 @@
         const state = value < 15 ? ["안정", "good"] : value < 20 ? ["보통", "neutral"] : value < 30 ? ["공포 주의", "warning"] : ["고공포", "danger"];
         return result("미국 옵션시장이 예상하는 30일 변동성입니다. 급등하면 위험회피 심리가 강해졌다는 뜻입니다.", state[0], state[1], "15 미만 안정 · 20 이상 주의 · 30 이상 고공포", [["15 미만","안정"],["15~20","보통"],["20~30","주의"],["30 이상","고공포"]]);
       }
+      if (name === "미국 금리 전망 (2년물)") {
+        const signal = Number(item && (item.signalValue ?? item.change20));
+        const state = !Number.isFinite(signal) ? ["추세 확인", "neutral"] : signal <= -.25 ? ["인하 기대 확대", "good"] : signal < .10 ? ["중립", "neutral"] : signal < .25 ? ["인상 경계", "warning"] : ["인상 압력 확대", "danger"];
+        return result("미국 2년물 국채금리와 최근 20거래일 변화를 봅니다. 20일 변화가 클수록 고금리·인상 압력이 강해진 것으로 해석합니다. 이 수치는 확률이 아니며 정확한 다음 FOMC 확률은 CME FedWatch에서 확인합니다.", state[0], state[1], "20일 -0.25%p 이하 인하 기대 · -0.25~+0.10 중립 · +0.25 이상 인상 압력", [["-0.25%p 이하","인하 기대 확대"],["-0.25~+0.10%p","중립"],["+0.10~+0.25%p","인상 경계"],["+0.25%p 이상","인상 압력 확대"]]);
+      }
       if (name === "Fear & Greed") {
         const state = value < 25 ? ["극단적 공포", "danger"] : value < 45 ? ["공포", "warning"] : value < 56 ? ["중립", "neutral"] : value < 75 ? ["탐욕", "good"] : ["극단적 탐욕", "warning"];
         return result("0에 가까울수록 공포, 100에 가까울수록 탐욕입니다. 양끝은 추세 강화와 반전 가능성이 함께 있는 극단 구간입니다.", state[0], state[1], "25 미만 극단 공포 · 45~55 중립 · 75 이상 극단 탐욕", [["0~24","극단적 공포"],["25~44","공포"],["45~55","중립"],["56~74","탐욕"],["75~100","극단적 탐욕"]]);
@@ -2405,14 +2410,14 @@
       const title = indicatorEscape(item && item.name || "-");
       const cardStart = `<article class="indicator-card${item && item.available ? "" : " unavailable"}" role="button" tabindex="0" data-market="${market}" data-index="${index}" aria-label="${title} 상세 보기">`;
       if (!item || !item.available) {
-        const external = item && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">CNN에서 직접 확인 ↗</a>` : "";
+        const external = item && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">${indicatorEscape(item.externalLabel || "공식 페이지에서 직접 확인")} ↗</a>` : "";
         return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">수집 불가</div>${indicatorSparkline([])}<div class="indicator-detail">${indicatorEscape(item && item.error || "데이터 없음")}</div><div class="indicator-source">점수 계산에서 제외</div>${external}<div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state neutral">기준 확인</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
       }
       const value = Number(item.value);
       const change = Number(item.change);
       const unit = item.unit || "";
       const changeText = Number.isFinite(change) ? `${change > 0 ? "▲" : change < 0 ? "▼" : "―"} ${Math.abs(change).toFixed(2)}${unit}` : "전일 비교 없음";
-      const staleLink = item.stale && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">최신값 CNN에서 확인 ↗</a>` : "";
+      const staleLink = item.externalUrl && (item.stale || item.externalAlways) ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">${indicatorEscape(item.externalLabel || "공식 페이지에서 최신값 확인")} ↗</a>` : "";
       return `${cardStart}<div class="indicator-title">${title}</div><div class="indicator-value">${Number.isFinite(value) ? value.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-"}${indicatorEscape(unit)}</div><div class="indicator-change ${Number.isFinite(change) ? cls(change) : "neutral"}">${changeText}</div>${indicatorSparkline(item.history)}<div class="indicator-detail">${indicatorEscape(item.detail || "최근 추세")}</div><div class="indicator-source">출처: ${indicatorEscape(item.source || "-")}</div>${staleLink}<div class="indicator-guide"><strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}</div><div class="indicator-threshold"><span class="indicator-state ${rule.tone}">현재 · ${indicatorEscape(rule.status)}</span><span>${indicatorEscape(rule.short)}</span></div><div class="indicator-open-hint">눌러서 크게 보기</div></article>`;
     }
 
@@ -2431,7 +2436,7 @@
       state.textContent = `현재 · ${rule.status}`;
       document.getElementById("indicatorDialogChart").innerHTML = indicatorLargeChart(item.history, unit);
       document.getElementById("indicatorDialogGuide").innerHTML = `<strong>읽는 법</strong> · ${indicatorEscape(rule.guide)}`;
-      document.getElementById("indicatorDialogExternal").innerHTML = (!item.available || item.stale) && item.externalUrl ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">CNN Fear &amp; Greed 공식 페이지에서 최신값 확인 ↗</a>` : "";
+      document.getElementById("indicatorDialogExternal").innerHTML = item.externalUrl && (!item.available || item.stale || item.externalAlways) ? `<a class="indicator-external-link" href="${indicatorEscape(item.externalUrl)}" target="_blank" rel="noopener noreferrer">${indicatorEscape(item.externalLabel || "공식 페이지에서 최신값 확인")} ↗</a>` : "";
       document.getElementById("indicatorDialogBands").innerHTML = rule.bands.map(band => `<div class="indicator-band"><strong>${indicatorEscape(band[0])}</strong><span>${indicatorEscape(band[1])}</span></div>`).join("");
       const dialog = document.getElementById("indicatorDialog");
       if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v36-box-position";
+const CACHE_NAME = "portfolio-dashboard-v37-us-rate-outlook";
 const APP_SHELL = [
   "./",
   "index.html",
