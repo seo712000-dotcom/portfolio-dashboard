@@ -1,7 +1,7 @@
 {
   "name": "Portfolio Dashboard",
   "short_name": "Portfolio",
-  "description": "Portfolio analysis dashboard with market indicators and U.S. rate outlook",
+  "description": "Portfolio dashboard with Turtle breakout and ADX stock screening",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
