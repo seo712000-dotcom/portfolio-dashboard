@@ -1,4 +1,4 @@
-const CACHE_NAME = "portfolio-dashboard-v38-turtle-adx";
+const CACHE_NAME = "portfolio-dashboard-v40-turtle-rs";
 const APP_SHELL = [
   "./",
   "index.html",

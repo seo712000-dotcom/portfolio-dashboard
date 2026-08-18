@@ -1,7 +1,7 @@
 {
   "name": "Portfolio Dashboard",
   "short_name": "Portfolio",
-  "description": "Portfolio dashboard with Turtle breakout and ADX stock screening",
+  "description": "Portfolio dashboard with Turtle ADX screening, relative-strength ranking, popup charts, and four-entry pyramiding",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
