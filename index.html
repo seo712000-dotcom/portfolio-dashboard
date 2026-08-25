@@ -897,7 +897,8 @@
         </div>
         <div class="turtle-controls">
           <label>분석 대상<select id="turtleUniverse"><option value="KOSPI200">코스피200</option><option value="KOSDAQ150">코스닥150</option><option value="NASDAQ100">나스닥100</option><option value="ALL">전체 시장</option></select></label>
-          <label>전체 투자 원금<input id="turtleCapital" type="number" min="100000" step="100000" value="50000000"></label>
+          <label>국내 투자원금(원)<input id="turtleCapital" type="number" min="100000" step="100000" value="50000000"></label>
+          <label>나스닥 투자원금(USD)<input id="turtleUsCapital" type="number" min="100" step="100" value="10000"></label>
           <label class="wide">추가 종목<input id="turtleExtra" type="text" placeholder="예: 005930.KS, 086520.KQ, NVDA"></label>
           <label>최소 ADX<input id="turtleMinAdx" type="number" min="5" max="80" value="20"></label>
           <label>Sys1 진입<input id="turtleEntry1" type="number" min="2" max="100" value="20"></label>
@@ -2146,7 +2147,7 @@
 
     function turtleSettingsFromUi() {
       const number = (id, fallback) => Math.max(2, Number(document.getElementById(id).value) || fallback);
-      return { universe: document.getElementById("turtleUniverse").value, capital: Math.max(100000, Number(document.getElementById("turtleCapital").value) || 50000000), extra: document.getElementById("turtleExtra").value.trim().toUpperCase(), minAdx: Math.max(5, Number(document.getElementById("turtleMinAdx").value) || 20), entry1: number("turtleEntry1", 20), exit1: number("turtleExit1", 10), entry2: number("turtleEntry2", 55), exit2: number("turtleExit2", 20), atrPeriod: number("turtleAtr", 20), adxPeriod: number("turtleAdx", 14) };
+      return { universe: document.getElementById("turtleUniverse").value, capital: Math.max(100000, Number(document.getElementById("turtleCapital").value) || 50000000), usCapital: Math.max(100, Number(document.getElementById("turtleUsCapital").value) || 10000), extra: document.getElementById("turtleExtra").value.trim().toUpperCase(), minAdx: Math.max(5, Number(document.getElementById("turtleMinAdx").value) || 20), entry1: number("turtleEntry1", 20), exit1: number("turtleExit1", 10), entry2: number("turtleEntry2", 55), exit2: number("turtleExit2", 20), atrPeriod: number("turtleAtr", 20), adxPeriod: number("turtleAdx", 14) };
     }
 
     function turtleSignature(s) { return JSON.stringify({ universe:s.universe, extra:s.extra, minAdx:s.minAdx, entry1:s.entry1, exit1:s.exit1, entry2:s.entry2, exit2:s.exit2, atrPeriod:s.atrPeriod, adxPeriod:s.adxPeriod }); }
@@ -2159,6 +2160,7 @@
     function turtlePp(value) { if(value===null||value===""||value===undefined)return "-";const number=Number(value);return Number.isFinite(number)?`${number>=0?"+":""}${number.toFixed(1)}%p`:"-"; }
     function turtleStage(item){return Math.max(0,Math.min(4,Number(turtleEntryStages[item.ticker])||0));}
     function turtleStagePlan(item){const stage=turtleStage(item),base=Number(item.entry1),n=Number(item.n),entries=[base,base+.5*n,base+n,base+1.5*n];return {stage,entries,stop:stage?entries[stage-1]-2*n:base-2*n};}
+    function turtleUnit(item,settings){const capital=item&&(item.currency==="USD"||item.market==="US")?settings.usCapital:settings.capital;return Number(item&&item.n)>0?Math.floor(capital*.01/Number(item.n)):0;}
     function turtleItemMarket(item){
       const raw=String(item.indexGroup||item.sector||item.universe||item.benchmarkName||item.benchmarkTicker||"").toUpperCase(),ticker=String(item.ticker||"").toUpperCase();
       if(raw.includes("NASDAQ")||raw.includes("나스닥")||item.market==="US")return "NASDAQ100";
@@ -2197,7 +2199,7 @@
       const progress=document.getElementById("turtleProgress"),button=document.getElementById("scanTurtle");
       progress.textContent=turtleScan.running?`${settings.universe} 분석 중 · ${turtleScan.rows.length}/${total||"구성종목 확인 중"}`:turtleScan.rows.length?`${settings.universe} · 유효 ${valid.length} · 실패 ${failed} · ${turtleScan.next>=total&&total?"분석 완료":"중단 지점부터 이어서 가능"}`:"분석 대상을 선택하고 시작하세요. 결과는 이 기기에 이어서 저장됩니다.";
       button.disabled=turtleScan.running; button.textContent=turtleScan.running?`분석 중 ${turtleScan.rows.length}/${total||"…"}`:turtleScan.next>=total&&total?"다시 분석":turtleScan.next?"이어 분석":"분석 시작";
-      const fullRow=item=>{const unit=item.n>0?Math.floor(settings.capital*.01/item.n):0,base=Number(item.entry1),plan=turtleStagePlan(item);return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${unit.toLocaleString()}주</td><td>${turtlePrice(base,item)}</td><td>${turtlePrice(base+.5*item.n,item)}</td><td>${turtlePrice(base+item.n,item)}</td><td>${turtlePrice(base+1.5*item.n,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${plan.stage?plan.stage+"차":"미진입"}<br><span class="hint">${(unit*plan.stage).toLocaleString()}주</span></td><td>${turtlePrice(plan.stop,item)}</td><td>${turtleStateBadge(item)}</td></tr>`;};
+      const fullRow=item=>{const unit=turtleUnit(item,settings),base=Number(item.entry1),plan=turtleStagePlan(item);return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${unit.toLocaleString()}주</td><td>${turtlePrice(base,item)}</td><td>${turtlePrice(base+.5*item.n,item)}</td><td>${turtlePrice(base+item.n,item)}</td><td>${turtlePrice(base+1.5*item.n,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${plan.stage?plan.stage+"차":"미진입"}<br><span class="hint">${(unit*plan.stage).toLocaleString()}주</span></td><td>${turtlePrice(plan.stop,item)}</td><td>${turtleStateBadge(item)}</td></tr>`;};
       document.getElementById("turtlePerfectRows").innerHTML=perfect.length?perfect.map(fullRow).join(""):`<tr><td colspan="18">현재 완전 진입 조건을 충족한 종목이 없습니다.</td></tr>`;
       document.getElementById("turtleTrackingRows").innerHTML=tracking.length?tracking.map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtleStateBadge(item)}</td></tr>`).join(""):`<tr><td colspan="12">돌파 근접 또는 상승 추세 종목이 없습니다.</td></tr>`;
       document.getElementById("turtleWatchRows").innerHTML=watch.slice(0,100).map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${turtleStateBadge(item)}</td></tr>`).join("")||`<tr><td colspan="12">분석을 시작하면 관망 종목이 표시됩니다.</td></tr>`;
@@ -2206,7 +2208,7 @@
     function renderTurtleChart(item) {
       const chart=document.getElementById("turtleChart"),guide=document.getElementById("turtleGuide");
       if(!item||!item.chart||!(item.chart.closes||[]).length){chart.innerHTML=`<div class="ledger-empty">차트 데이터가 없습니다.</div>`;guide.innerHTML="";return;}
-      const settings=turtleSettingsFromUi(),unit=item.n>0?Math.floor(settings.capital*.01/item.n):0,base=Number(item.entry1),plan=turtleStagePlan(item),entries=plan.entries,stop=plan.stop;
+      const settings=turtleSettingsFromUi(),unit=turtleUnit(item,settings),base=Number(item.entry1),plan=turtleStagePlan(item),entries=plan.entries,stop=plan.stop;
       document.getElementById("turtleDialogTitle").textContent=`${item.name} (${item.ticker}) · 최근 60일`;
       const rsAvailable=item.rsScore!==null&&item.rsScore!==""&&item.rsScore!==undefined&&Number.isFinite(Number(item.rsScore)),rsScore=rsAvailable?Number(item.rsScore):null;
       document.getElementById("turtleDialogMeta").textContent=`${item.phase||"관망"} · ADX ${Number(item.adx).toFixed(1)} · RS ${rsAvailable?Math.round(rsScore)+" ("+turtleRsLabel(rsScore)+")":"-"} · +DI ${Number(item.plusDi).toFixed(1)} / -DI ${Number(item.minusDi).toFixed(1)}`;
@@ -2743,7 +2745,10 @@
     document.getElementById("usPatternFilter").addEventListener("change", renderUsPatterns);
     document.getElementById("scanTurtle").addEventListener("click", scanTurtle);
     document.getElementById("resetTurtle").addEventListener("click", resetTurtleScan);
-    document.getElementById("turtleCapital").addEventListener("change", renderTurtle);
+    ["turtleCapital","turtleUsCapital"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{
+      localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(turtleSettingsFromUi()));
+      renderTurtle();
+    }));
     document.getElementById("turtleMarketFilters").addEventListener("click", event => {
       const button=event.target.closest("[data-market]");
       if(!button)return;
@@ -2868,7 +2873,7 @@
       try {
         const savedTurtle = JSON.parse(localStorage.getItem("turtleAdxSettingsV1") || "null");
         if (savedTurtle) {
-          const ids = { universe:"turtleUniverse", capital:"turtleCapital", extra:"turtleExtra", minAdx:"turtleMinAdx", entry1:"turtleEntry1", exit1:"turtleExit1", entry2:"turtleEntry2", exit2:"turtleExit2", atrPeriod:"turtleAtr", adxPeriod:"turtleAdx" };
+          const ids = { universe:"turtleUniverse", capital:"turtleCapital", usCapital:"turtleUsCapital", extra:"turtleExtra", minAdx:"turtleMinAdx", entry1:"turtleEntry1", exit1:"turtleExit1", entry2:"turtleEntry2", exit2:"turtleExit2", atrPeriod:"turtleAtr", adxPeriod:"turtleAdx" };
           Object.entries(ids).forEach(([key,id]) => { if (savedTurtle[key] != null) document.getElementById(id).value = savedTurtle[key]; });
         }
       } catch (error) { console.warn("터틀 설정 복원 실패", error); }
