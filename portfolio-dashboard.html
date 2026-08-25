@@ -911,9 +911,9 @@
       </section>
       <section class="quant-summary" id="turtleSummary"></section>
       <section class="turtle-result-tools" aria-label="발굴 결과 필터와 정렬">
-        <div><div class="hint" style="margin-bottom:5px">시장 필터</div><div class="turtle-filter-buttons" id="turtleMarketFilters"><button class="turtle-filter-button active" data-market="ALL">전체</button><button class="turtle-filter-button" data-market="KOSPI200">코스피200</button><button class="turtle-filter-button" data-market="KOSDAQ150">코스닥150</button></div></div>
-        <label>시가총액<select id="turtleMarketCapFilter"><option value="0">전체</option><option value="300000000000">3,000억 이상</option><option value="500000000000">5,000억 이상</option><option value="1000000000000">1조 이상</option></select></label>
-        <label>20일 평균 거래대금<select id="turtleTurnoverFilter"><option value="0">전체</option><option value="3000000000">30억 이상</option><option value="5000000000">50억 이상</option><option value="10000000000">100억 이상</option><option value="30000000000">300억 이상</option></select></label>
+        <div><div class="hint" style="margin-bottom:5px">시장 필터</div><div class="turtle-filter-buttons" id="turtleMarketFilters"><button class="turtle-filter-button active" data-market="ALL">전체</button><button class="turtle-filter-button" data-market="KOSPI200">코스피200</button><button class="turtle-filter-button" data-market="KOSDAQ150">코스닥150</button><button class="turtle-filter-button" data-market="NASDAQ100">나스닥100</button></div></div>
+        <label>시가총액<select id="turtleMarketCapFilter"><option value="ALL">전체</option><option value="LOW">3,000억 / $1B 이상</option><option value="MID">5,000억 / $5B 이상</option><option value="HIGH">1조 / $10B 이상</option></select></label>
+        <label>20일 평균 거래대금<select id="turtleTurnoverFilter"><option value="ALL">전체</option><option value="LOW">30억 / $10M 이상</option><option value="MID">50억 / $30M 이상</option><option value="HIGH">100억 / $50M 이상</option><option value="VERY_HIGH">300억 / $100M 이상</option></select></label>
         <label>정렬<select id="turtleResultSort"><option value="ENTRY">진입가 근접 순</option><option value="RS">RS 높은 순</option><option value="ADX">ADX 높은 순</option><option value="MARKET_CAP">시가총액 높은 순</option><option value="TURNOVER">거래대금 높은 순</option><option value="NAME">종목명 순</option></select></label>
         <span class="hint" id="turtleResultCount"></span>
       </section>
@@ -1058,9 +1058,9 @@
     turtleScan.running = false;
     let turtleSelectedTicker = "";
     let turtleEntryStages = JSON.parse(localStorage.getItem("turtleEntryStagesV1") || "{}");
-    let turtleResultPrefs = JSON.parse(localStorage.getItem("turtleResultPrefsV1") || "null") || { market:"ALL", sort:"ENTRY", marketCap:0, turnover:0 };
-    turtleResultPrefs.marketCap=Number(turtleResultPrefs.marketCap)||0;
-    turtleResultPrefs.turnover=Number(turtleResultPrefs.turnover)||0;
+    let turtleResultPrefs = JSON.parse(localStorage.getItem("turtleResultPrefsV1") || "null") || { market:"ALL", sort:"ENTRY", marketCap:"ALL", turnover:"ALL" };
+    if(!["ALL","LOW","MID","HIGH"].includes(turtleResultPrefs.marketCap))turtleResultPrefs.marketCap=Number(turtleResultPrefs.marketCap)>=1e12?"HIGH":Number(turtleResultPrefs.marketCap)>=5e11?"MID":Number(turtleResultPrefs.marketCap)>0?"LOW":"ALL";
+    if(!["ALL","LOW","MID","HIGH","VERY_HIGH"].includes(turtleResultPrefs.turnover))turtleResultPrefs.turnover=Number(turtleResultPrefs.turnover)>=3e10?"VERY_HIGH":Number(turtleResultPrefs.turnover)>=1e10?"HIGH":Number(turtleResultPrefs.turnover)>=5e9?"MID":Number(turtleResultPrefs.turnover)>0?"LOW":"ALL";
 
     const defaultConfig = window.PORTFOLIO_CONFIG || {};
     const savedConfig = JSON.parse(localStorage.getItem("portfolioGoogleConfig") || "{}");
@@ -2160,16 +2160,18 @@
     function turtleStage(item){return Math.max(0,Math.min(4,Number(turtleEntryStages[item.ticker])||0));}
     function turtleStagePlan(item){const stage=turtleStage(item),base=Number(item.entry1),n=Number(item.n),entries=[base,base+.5*n,base+n,base+1.5*n];return {stage,entries,stop:stage?entries[stage-1]-2*n:base-2*n};}
     function turtleItemMarket(item){
-      const raw=String(item.universe||item.indexGroup||item.benchmarkName||item.benchmarkTicker||"").toUpperCase(),ticker=String(item.ticker||"").toUpperCase();
+      const raw=String(item.indexGroup||item.sector||item.universe||item.benchmarkName||item.benchmarkTicker||"").toUpperCase(),ticker=String(item.ticker||"").toUpperCase();
+      if(raw.includes("NASDAQ")||raw.includes("나스닥")||item.market==="US")return "NASDAQ100";
       if(raw.includes("KOSDAQ")||raw.includes("코스닥")||raw.includes("232080")||ticker.endsWith(".KQ"))return "KOSDAQ150";
       if(raw.includes("KOSPI")||raw.includes("코스피")||raw.includes("KODEX200")||raw.includes("069500")||ticker.endsWith(".KS"))return "KOSPI200";
       return "OTHER";
     }
-    function turtleMarketBadge(item){const market=turtleItemMarket(item),kind=market==="KOSPI200"?"kospi":market==="KOSDAQ150"?"kosdaq":"other",label=market==="KOSPI200"?"코스피200":market==="KOSDAQ150"?"코스닥150":"기타";return `<span class="turtle-market-badge ${kind}">${label}</span>`;}
+    function turtleMarketBadge(item){const market=turtleItemMarket(item),kind=market==="KOSPI200"?"kospi":market==="KOSDAQ150"?"kosdaq":"other",label=market==="KOSPI200"?"코스피200":market==="KOSDAQ150"?"코스닥150":market==="NASDAQ100"?"나스닥100":"기타";return `<span class="turtle-market-badge ${kind}">${label}</span>`;}
     function turtleMarketCap(item){return Number(item.marketCap||item.marketCapValue||0);}
     function turtleTurnover(item){return Number(item.avgTurnover20||item.turnover20||item.averageTradingValue20||0);}
-    function turtleLargeMoney(value){const n=Number(value);if(!Number.isFinite(n)||n<=0)return "-";if(n>=1e12)return `${(n/1e12).toFixed(n>=1e13?1:2)}조`;return `${Math.round(n/1e8).toLocaleString("ko-KR")}억`;}
-    function turtleLiquidityLabel(value){const n=Number(value);return n>=3e10?"매우 풍부":n>=1e10?"양호":n>=5e9?"보통":"부족";}
+    function turtleLargeMoney(value,item){const n=Number(value);if(!Number.isFinite(n)||n<=0)return "-";if(item&&(item.currency==="USD"||item.market==="US")){if(n>=1e12)return `$${(n/1e12).toFixed(2)}T`;if(n>=1e9)return `$${(n/1e9).toFixed(2)}B`;return `$${(n/1e6).toFixed(1)}M`;}if(n>=1e12)return `${(n/1e12).toFixed(n>=1e13?1:2)}조`;return `${Math.round(n/1e8).toLocaleString("ko-KR")}억`;}
+    function turtleLiquidityLabel(value,item){const n=Number(value),us=item&&(item.currency==="USD"||item.market==="US");return us?(n>=1e8?"매우 풍부":n>=5e7?"양호":n>=3e7?"보통":"부족"):(n>=3e10?"매우 풍부":n>=1e10?"양호":n>=5e9?"보통":"부족");}
+    function turtlePassSizeFilters(item){const us=item.currency==="USD"||item.market==="US",capLevels=us?{LOW:1e9,MID:5e9,HIGH:1e10}:{LOW:3e11,MID:5e11,HIGH:1e12},turnLevels=us?{LOW:1e7,MID:3e7,HIGH:5e7,VERY_HIGH:1e8}:{LOW:3e9,MID:5e9,HIGH:1e10,VERY_HIGH:3e10};return (turtleResultPrefs.marketCap==="ALL"||turtleMarketCap(item)>=capLevels[turtleResultPrefs.marketCap])&&(turtleResultPrefs.turnover==="ALL"||turtleTurnover(item)>=turnLevels[turtleResultPrefs.turnover]);}
     function turtleSortRows(rows){const sort=turtleResultPrefs.sort;return [...rows].sort((a,b)=>{if(sort==="RS")return (Number(b.rsScore)||-1)-(Number(a.rsScore)||-1);if(sort==="ADX")return (Number(b.adx)||0)-(Number(a.adx)||0);if(sort==="MARKET_CAP")return turtleMarketCap(b)-turtleMarketCap(a);if(sort==="TURNOVER")return turtleTurnover(b)-turtleTurnover(a);if(sort==="NAME")return String(a.name||a.ticker).localeCompare(String(b.name||b.ticker),"ko");const da=Math.abs(Number(a.price)-Number(a.entry1))/(Number(a.n)||Number(a.entry1)||1),db=Math.abs(Number(b.price)-Number(b.entry1))/(Number(b.n)||Number(b.entry1)||1);return da-db||(Number(b.rsScore)||-1)-(Number(a.rsScore)||-1);});}
     function applyTurtleRsScores(items) {
       items.forEach(item=>{item.rsScore=null;});
@@ -2182,23 +2184,23 @@
     function renderTurtle() {
       const settings=turtleSettingsFromUi(), allValid=turtleScan.rows.filter(item=>!item.error);
       applyTurtleRsScores(allValid);
-      const valid=allValid.filter(item=>(turtleResultPrefs.market==="ALL"||turtleItemMarket(item)===turtleResultPrefs.market)&&(!turtleResultPrefs.marketCap||turtleMarketCap(item)>=turtleResultPrefs.marketCap)&&(!turtleResultPrefs.turnover||turtleTurnover(item)>=turtleResultPrefs.turnover));
+      const valid=allValid.filter(item=>(turtleResultPrefs.market==="ALL"||turtleItemMarket(item)===turtleResultPrefs.market)&&turtlePassSizeFilters(item));
       const perfect=turtleSortRows(valid.filter(item=>item.perfect)), tracking=turtleSortRows(valid.filter(item=>item.near||item.uptrend)), watch=turtleSortRows(valid.filter(item=>!item.perfect&&!item.near&&!item.uptrend));
       const failed=turtleScan.rows.length-allValid.length,total=turtleScan.total||0;
       document.getElementById("turtleSummary").innerHTML=[["분석 완료",`${turtleScan.rows.length}/${total||"-"}`],["완전 진입",`${perfect.length}개`],["돌파 근접",`${valid.filter(x=>x.near).length}개`],["상승 추세",`${valid.filter(x=>x.uptrend).length}개`]].map(([label,value])=>`<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-      const marketCounts={KOSPI200:allValid.filter(x=>turtleItemMarket(x)==="KOSPI200").length,KOSDAQ150:allValid.filter(x=>turtleItemMarket(x)==="KOSDAQ150").length};
+      const marketCounts={KOSPI200:allValid.filter(x=>turtleItemMarket(x)==="KOSPI200").length,KOSDAQ150:allValid.filter(x=>turtleItemMarket(x)==="KOSDAQ150").length,NASDAQ100:allValid.filter(x=>turtleItemMarket(x)==="NASDAQ100").length};
       document.querySelectorAll("#turtleMarketFilters [data-market]").forEach(button=>button.classList.toggle("active",button.dataset.market===turtleResultPrefs.market));
       document.getElementById("turtleResultSort").value=turtleResultPrefs.sort;
       document.getElementById("turtleMarketCapFilter").value=String(turtleResultPrefs.marketCap);
       document.getElementById("turtleTurnoverFilter").value=String(turtleResultPrefs.turnover);
-      document.getElementById("turtleResultCount").textContent=`현재 표시 ${valid.length}개 · 코스피200 ${marketCounts.KOSPI200}개 · 코스닥150 ${marketCounts.KOSDAQ150}개`;
+      document.getElementById("turtleResultCount").textContent=`현재 표시 ${valid.length}개 · 코스피200 ${marketCounts.KOSPI200}개 · 코스닥150 ${marketCounts.KOSDAQ150}개 · 나스닥100 ${marketCounts.NASDAQ100}개`;
       const progress=document.getElementById("turtleProgress"),button=document.getElementById("scanTurtle");
       progress.textContent=turtleScan.running?`${settings.universe} 분석 중 · ${turtleScan.rows.length}/${total||"구성종목 확인 중"}`:turtleScan.rows.length?`${settings.universe} · 유효 ${valid.length} · 실패 ${failed} · ${turtleScan.next>=total&&total?"분석 완료":"중단 지점부터 이어서 가능"}`:"분석 대상을 선택하고 시작하세요. 결과는 이 기기에 이어서 저장됩니다.";
       button.disabled=turtleScan.running; button.textContent=turtleScan.running?`분석 중 ${turtleScan.rows.length}/${total||"…"}`:turtleScan.next>=total&&total?"다시 분석":turtleScan.next?"이어 분석":"분석 시작";
-      const fullRow=item=>{const unit=item.n>0?Math.floor(settings.capital*.01/item.n):0,base=Number(item.entry1),plan=turtleStagePlan(item);return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item))}</td><td>${turtleLargeMoney(turtleTurnover(item))}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${unit.toLocaleString()}주</td><td>${turtlePrice(base,item)}</td><td>${turtlePrice(base+.5*item.n,item)}</td><td>${turtlePrice(base+item.n,item)}</td><td>${turtlePrice(base+1.5*item.n,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${plan.stage?plan.stage+"차":"미진입"}<br><span class="hint">${(unit*plan.stage).toLocaleString()}주</span></td><td>${turtlePrice(plan.stop,item)}</td><td>${turtleStateBadge(item)}</td></tr>`;};
+      const fullRow=item=>{const unit=item.n>0?Math.floor(settings.capital*.01/item.n):0,base=Number(item.entry1),plan=turtleStagePlan(item);return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${unit.toLocaleString()}주</td><td>${turtlePrice(base,item)}</td><td>${turtlePrice(base+.5*item.n,item)}</td><td>${turtlePrice(base+item.n,item)}</td><td>${turtlePrice(base+1.5*item.n,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${plan.stage?plan.stage+"차":"미진입"}<br><span class="hint">${(unit*plan.stage).toLocaleString()}주</span></td><td>${turtlePrice(plan.stop,item)}</td><td>${turtleStateBadge(item)}</td></tr>`;};
       document.getElementById("turtlePerfectRows").innerHTML=perfect.length?perfect.map(fullRow).join(""):`<tr><td colspan="18">현재 완전 진입 조건을 충족한 종목이 없습니다.</td></tr>`;
-      document.getElementById("turtleTrackingRows").innerHTML=tracking.length?tracking.map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item))}</td><td>${turtleLargeMoney(turtleTurnover(item))}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtleStateBadge(item)}</td></tr>`).join(""):`<tr><td colspan="12">돌파 근접 또는 상승 추세 종목이 없습니다.</td></tr>`;
-      document.getElementById("turtleWatchRows").innerHTML=watch.slice(0,100).map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item))}</td><td>${turtleLargeMoney(turtleTurnover(item))}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${turtleStateBadge(item)}</td></tr>`).join("")||`<tr><td colspan="12">분석을 시작하면 관망 종목이 표시됩니다.</td></tr>`;
+      document.getElementById("turtleTrackingRows").innerHTML=tracking.length?tracking.map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtleStateBadge(item)}</td></tr>`).join(""):`<tr><td colspan="12">돌파 근접 또는 상승 추세 종목이 없습니다.</td></tr>`;
+      document.getElementById("turtleWatchRows").innerHTML=watch.slice(0,100).map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${turtleStateBadge(item)}</td></tr>`).join("")||`<tr><td colspan="12">분석을 시작하면 관망 종목이 표시됩니다.</td></tr>`;
     }
 
     function renderTurtleChart(item) {
@@ -2211,7 +2213,7 @@
       document.getElementById("turtleEntryStage").value=String(plan.stage);
       document.getElementById("turtleDialogSummary").innerHTML=`<div class="turtle-guide"><span>현재 보유 단계</span><strong>${plan.stage?plan.stage+"차":"미진입"}</strong></div><div class="turtle-guide"><span>누적 계획 수량</span><strong>${(unit*plan.stage).toLocaleString()}주</strong></div><div class="turtle-guide"><span>${plan.stage?"통합":"계획"} 손절선 (-2N)</span><strong>${turtlePrice(stop,item)}</strong></div><div class="turtle-guide"><span>10일 청산선 (매일 갱신)</span><strong>${turtlePrice(item.exit1,item)}</strong></div>`;
       const cap=turtleMarketCap(item),turnover=turtleTurnover(item);
-      document.getElementById("turtleLiquiditySummary").innerHTML=`<div class="turtle-guide"><span>시가총액</span><strong>${turtleLargeMoney(cap)}</strong></div><div class="turtle-guide"><span>20일 평균 거래대금</span><strong>${turtleLargeMoney(turnover)}</strong></div><div class="turtle-guide"><span>유동성 등급</span><strong>${turnover?turtleLiquidityLabel(turnover):"-"}</strong></div><div class="turtle-guide"><span>추천 기준</span><strong>${!cap||!turnover?"계산 대기":cap>=5e11&&turnover>=5e9?"충족":"미충족"}</strong><small>시총 5천억 · 거래대금 50억</small></div>`;
+      document.getElementById("turtleLiquiditySummary").innerHTML=`<div class="turtle-guide"><span>시가총액</span><strong>${turtleLargeMoney(cap,item)}</strong></div><div class="turtle-guide"><span>20일 평균 거래대금</span><strong>${turtleLargeMoney(turnover,item)}</strong></div><div class="turtle-guide"><span>유동성 등급</span><strong>${turnover?turtleLiquidityLabel(turnover,item):"-"}</strong></div><div class="turtle-guide"><span>추천 기준</span><strong>${!cap||!turnover?"계산 대기":(item.market==="US"?cap>=5e9&&turnover>=3e7:cap>=5e11&&turnover>=5e9)?"충족":"미충족"}</strong><small>${item.market==="US"?"시총 $5B · 거래대금 $30M":"시총 5천억 · 거래대금 50억"}</small></div>`;
       document.getElementById("turtleRsSummary").innerHTML=`<div class="turtle-guide"><span>RS 점수</span><strong>${rsAvailable?Math.round(rsScore)+"점":"-"}</strong><small>${rsAvailable?turtleRsLabel(rsScore):"계산 대기"}</small></div><div class="turtle-guide"><span>1개월 초과수익</span><strong>${turtlePp(item.rs1)}</strong></div><div class="turtle-guide"><span>3개월 초과수익</span><strong>${turtlePp(item.rs3)}</strong></div><div class="turtle-guide"><span>6개월 초과수익</span><strong>${turtlePp(item.rs6)}</strong></div>`;
       document.getElementById("turtleRsGuide").textContent=`기준: ${item.benchmarkName||item.benchmarkTicker||"시장 기준지수"} · 1개월 20% + 3개월 30% + 6개월 50% 가중 · 분석군 내 백분위 (80+ 주도주, 60~79 강세, 40~59 중립, 40 미만 약세)`;
       const values=item.chart.closes.map(Number),lines=[...entries,stop,Number(item.exit1)].filter(Number.isFinite);let min=Math.min(...values,...lines),max=Math.max(...values,...lines);const pad=Math.max((max-min)*.08,max*.005);min-=pad;max+=pad;
@@ -2755,12 +2757,12 @@
       renderTurtle();
     });
     document.getElementById("turtleMarketCapFilter").addEventListener("change", event => {
-      turtleResultPrefs.marketCap=Number(event.target.value)||0;
+      turtleResultPrefs.marketCap=event.target.value;
       localStorage.setItem("turtleResultPrefsV1",JSON.stringify(turtleResultPrefs));
       renderTurtle();
     });
     document.getElementById("turtleTurnoverFilter").addEventListener("change", event => {
-      turtleResultPrefs.turnover=Number(event.target.value)||0;
+      turtleResultPrefs.turnover=event.target.value;
       localStorage.setItem("turtleResultPrefsV1",JSON.stringify(turtleResultPrefs));
       renderTurtle();
     });
