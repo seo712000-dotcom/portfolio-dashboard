@@ -1,7 +1,7 @@
 {
   "name": "Portfolio Dashboard",
   "short_name": "Portfolio",
-  "description": "Portfolio dashboard with Turtle ADX screening, relative-strength ranking, popup charts, and four-entry pyramiding",
+  "description": "Portfolio dashboard with Turtle ADX screening, Korean 20-day high pullback swing signals, relative strength, and popup charts",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -17,4 +17,3 @@
     }
   ]
 }
-

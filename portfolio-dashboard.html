@@ -896,6 +896,7 @@
           <div class="actions"><button id="resetTurtle">결과 초기화</button><button class="primary" id="scanTurtle">분석 시작</button></div>
         </div>
         <div class="turtle-controls">
+          <label>전략<select id="turtleStrategy"><option value="TURTLE">터틀·ADX 돌파</option><option value="PULLBACK_KR">국내 20일 신고가 눌림</option></select></label>
           <label>분석 대상<select id="turtleUniverse"><option value="KOSPI200">코스피200</option><option value="KOSDAQ150">코스닥150</option><option value="NASDAQ100">나스닥100</option><option value="ALL">전체 시장</option></select></label>
           <label>국내 투자원금(원)<input id="turtleCapital" type="number" min="100000" step="100000" value="50000000"></label>
           <label>나스닥 투자원금(USD)<input id="turtleUsCapital" type="number" min="100" step="100" value="10000"></label>
@@ -918,15 +919,19 @@
         <label>정렬<select id="turtleResultSort"><option value="ENTRY">진입가 근접 순</option><option value="RS">RS 높은 순</option><option value="ADX">ADX 높은 순</option><option value="MARKET_CAP">시가총액 높은 순</option><option value="TURNOVER">거래대금 높은 순</option><option value="NAME">종목명 순</option></select></label>
         <span class="hint" id="turtleResultCount"></span>
       </section>
-      <section class="panel">
+      <section class="panel" id="turtleDomesticPanel" hidden>
+        <div class="panel-head"><div><h2>🇰🇷 20일 신고가 눌림 스윙 후보</h2><div class="hint">종가 기준 20일 신고가 · 당일 거래대금 500억 이상 · 깔끔한 양봉 · 기관/외국인 순매수 후 거래량 감소 음봉</div></div></div>
+        <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>신고가 발생일</th><th>20일 신고가</th><th>돌파일 거래대금</th><th>기관 순매수</th><th>외국인 순매수</th><th>음봉</th><th>거래량 감소</th><th>5일선</th><th>10일선</th><th>상태</th></tr></thead><tbody id="turtleDomesticRows"></tbody></table></div>
+      </section>
+      <section class="panel" id="turtleClassicPerfectPanel">
         <div class="panel-head"><div><h2>🔥 오늘의 추세추종 발굴 종목</h2><div class="hint">현재가 ≥ 직전 20일 최고가 · ADX 기준 이상 · +DI &gt; -DI</div></div></div>
         <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>시가총액</th><th>20일 평균 거래대금</th><th>ADX</th><th>RS</th><th>+DI</th><th>-DI</th><th>N(ATR)</th><th>1 Unit</th><th>1차 진입</th><th>2차(+0.5N)</th><th>3차(+1.0N)</th><th>4차(+1.5N)</th><th>10일 청산</th><th>현재 단계</th><th>통합 손절(-2N)</th><th>상태</th></tr></thead><tbody id="turtlePerfectRows"></tbody></table></div>
       </section>
-      <section class="panel">
+      <section class="panel" id="turtleClassicTrackingPanel">
         <div class="panel-head"><div><h2>⚡ 돌파 근접·상승 추세</h2><div class="hint">돌파선 2% 이내 또는 ADX/DI가 확인된 추세 종목</div></div></div>
         <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>시가총액</th><th>20일 평균 거래대금</th><th>진입선 거리</th><th>ADX</th><th>RS</th><th>+DI</th><th>-DI</th><th>N</th><th>20일 진입</th><th>상태</th></tr></thead><tbody id="turtleTrackingRows"></tbody></table></div>
       </section>
-      <section class="panel">
+      <section class="panel" id="turtleClassicWatchPanel">
         <div class="panel-head"><div><h2>👀 관망 및 추적 종목</h2><div class="hint">조건 미충족·ADX 확인 필요·청산 경계</div></div></div>
         <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>시가총액</th><th>20일 평균 거래대금</th><th>ADX</th><th>RS</th><th>+DI</th><th>-DI</th><th>20일 진입</th><th>10일 청산</th><th>거리</th><th>상태</th></tr></thead><tbody id="turtleWatchRows"></tbody></table></div>
       </section>
@@ -1704,8 +1709,10 @@
 
     function usStockLink(item) {
       const ticker = String(item.ticker || item.code || "").replace(/[^A-Z0-9.-]/gi, "");
-      return `<a href="https://finance.yahoo.com/quote/${encodeURIComponent(ticker)}/chart/" target="_blank" rel="noopener">${escapeHtml(item.name || ticker)}</a>`;
+      return `<a href="${naverWorldStockUrl(ticker)}" target="_blank" rel="noopener">${escapeHtml(item.name || ticker)}</a>`;
     }
+
+    function naverWorldStockUrl(ticker) { const symbol=String(ticker||"").toUpperCase().replace(/\.(O|N|A)$/i,""); return `https://m.stock.naver.com/worldstock/stock/${encodeURIComponent(symbol+".O")}/total`; }
 
     function nasdaqTechnicalScore(item) {
       const trend = weightedAvailable([
@@ -2147,12 +2154,12 @@
 
     function turtleSettingsFromUi() {
       const number = (id, fallback) => Math.max(2, Number(document.getElementById(id).value) || fallback);
-      return { universe: document.getElementById("turtleUniverse").value, capital: Math.max(100000, Number(document.getElementById("turtleCapital").value) || 50000000), usCapital: Math.max(100, Number(document.getElementById("turtleUsCapital").value) || 10000), extra: document.getElementById("turtleExtra").value.trim().toUpperCase(), minAdx: Math.max(5, Number(document.getElementById("turtleMinAdx").value) || 20), entry1: number("turtleEntry1", 20), exit1: number("turtleExit1", 10), entry2: number("turtleEntry2", 55), exit2: number("turtleExit2", 20), atrPeriod: number("turtleAtr", 20), adxPeriod: number("turtleAdx", 14) };
+      return { strategy: document.getElementById("turtleStrategy").value, universe: document.getElementById("turtleUniverse").value, capital: Math.max(100000, Number(document.getElementById("turtleCapital").value) || 50000000), usCapital: Math.max(100, Number(document.getElementById("turtleUsCapital").value) || 10000), extra: document.getElementById("turtleExtra").value.trim().toUpperCase(), minAdx: Math.max(5, Number(document.getElementById("turtleMinAdx").value) || 20), entry1: number("turtleEntry1", 20), exit1: number("turtleExit1", 10), entry2: number("turtleEntry2", 55), exit2: number("turtleExit2", 20), atrPeriod: number("turtleAtr", 20), adxPeriod: number("turtleAdx", 14) };
     }
 
-    function turtleSignature(s) { return JSON.stringify({ universe:s.universe, extra:s.extra, minAdx:s.minAdx, entry1:s.entry1, exit1:s.exit1, entry2:s.entry2, exit2:s.exit2, atrPeriod:s.atrPeriod, adxPeriod:s.adxPeriod }); }
+    function turtleSignature(s) { return JSON.stringify({ strategy:s.strategy, universe:s.universe, extra:s.extra, minAdx:s.minAdx, entry1:s.entry1, exit1:s.exit1, entry2:s.entry2, exit2:s.exit2, atrPeriod:s.atrPeriod, adxPeriod:s.adxPeriod }); }
     function turtlePrice(value, item) { const n=Number(value); if(!Number.isFinite(n)) return "-"; return item&&item.market==="US" ? `$${n.toLocaleString("en-US",{maximumFractionDigits:2})}` : `${Math.round(n).toLocaleString("ko-KR")}원`; }
-    function turtleStockLink(item) { const label=escapeHtml(item.name||item.ticker||"-"),badge=`<br>${turtleMarketBadge(item)}`; if(item.market==="US") return `<a class="stock-link" href="https://finance.yahoo.com/quote/${encodeURIComponent(item.ticker)}" target="_blank" rel="noopener noreferrer">${label}</a>${badge}`; const code=escapeHtml(String(item.code||item.ticker||"").replace(/\D/g,"").slice(0,6)); return `<a class="stock-link" href="https://finance.naver.com/item/main.naver?code=${code}" target="_blank" rel="noopener noreferrer">${label}</a>${badge}`; }
+    function turtleStockLink(item) { const label=escapeHtml(item.name||item.ticker||"-"),badge=`<br>${turtleMarketBadge(item)}`; if(item.market==="US") return `<a class="stock-link" href="${naverWorldStockUrl(item.ticker)}" target="_blank" rel="noopener noreferrer">${label}</a>${badge}`; const code=escapeHtml(String(item.code||item.ticker||"").replace(/\D/g,"").slice(0,6)); return `<a class="stock-link" href="https://finance.naver.com/item/main.naver?code=${code}" target="_blank" rel="noopener noreferrer">${label}</a>${badge}`; }
     function turtleRowAttr(item) { return `data-turtle-ticker="${escapeHtml(item.ticker)}"`; }
     function turtleStateBadge(item) { const kind=item.perfect?"perfect":item.near?"near":item.uptrend?"uptrend":item.exitSignal?"exit":""; return `<span class="turtle-state ${kind}">${escapeHtml(item.phase||"관망")}</span>`; }
     function turtleRsLabel(score) { return score>=80?"주도주":score>=60?"강세":score>=40?"중립":"약세"; }
@@ -2183,6 +2190,9 @@
       while(start<ranked.length){let end=start;while(end+1<ranked.length&&Number(ranked[end+1].rsRaw)===Number(ranked[start].rsRaw))end++;const averageRank=(start+end)/2;const score=ranked.length===1?100:Math.round(1+99*averageRank/(ranked.length-1));for(let index=start;index<=end;index++)ranked[index].rsScore=score;start=end+1;}
     }
 
+    function turtleSignedShares(value){const n=Number(value);return Number.isFinite(n)?`${n>0?"+":""}${Math.round(n).toLocaleString("ko-KR")}주`:"-";}
+    function domesticTrendBadge(trend){const status=trend&&trend.status||"관망",kind=status==="매수 조건 충족"?"perfect":status==="수급 동반 신고가"?"near":status==="눌림 대기"?"uptrend":status.includes("이탈")?"exit":"";return `<span class="turtle-state ${kind}">${escapeHtml(status)}</span>`;}
+
     function renderTurtle() {
       const settings=turtleSettingsFromUi(), allValid=turtleScan.rows.filter(item=>!item.error);
       applyTurtleRsScores(allValid);
@@ -2199,6 +2209,16 @@
       const progress=document.getElementById("turtleProgress"),button=document.getElementById("scanTurtle");
       progress.textContent=turtleScan.running?`${settings.universe} 분석 중 · ${turtleScan.rows.length}/${total||"구성종목 확인 중"}`:turtleScan.rows.length?`${settings.universe} · 유효 ${valid.length} · 실패 ${failed} · ${turtleScan.next>=total&&total?"분석 완료":"중단 지점부터 이어서 가능"}`:"분석 대상을 선택하고 시작하세요. 결과는 이 기기에 이어서 저장됩니다.";
       button.disabled=turtleScan.running; button.textContent=turtleScan.running?`분석 중 ${turtleScan.rows.length}/${total||"…"}`:turtleScan.next>=total&&total?"다시 분석":turtleScan.next?"이어 분석":"분석 시작";
+      const domesticMode=settings.strategy==="PULLBACK_KR";
+      document.getElementById("turtleDomesticPanel").hidden=!domesticMode;
+      ["turtleClassicPerfectPanel","turtleClassicTrackingPanel","turtleClassicWatchPanel"].forEach(id=>document.getElementById(id).hidden=domesticMode);
+      if(domesticMode){
+        const domestic=valid.filter(item=>item.domesticTrend).sort((a,b)=>{const rank=s=>s==="매수 조건 충족"?0:s==="수급 동반 신고가"?1:s==="눌림 대기"?2:3;return rank(a.domesticTrend.status)-rank(b.domesticTrend.status)||(Number(b.rsScore)||0)-(Number(a.rsScore)||0);});
+        const counts=status=>domestic.filter(item=>item.domesticTrend.status===status).length;
+        document.getElementById("turtleSummary").innerHTML=[["분석 완료",`${turtleScan.rows.length}/${total||"-"}`],["매수 조건",`${counts("매수 조건 충족")}개`],["수급 신고가",`${counts("수급 동반 신고가")}개`],["눌림 대기",`${counts("눌림 대기")}개`]].map(([label,value])=>`<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
+        document.getElementById("turtleDomesticRows").innerHTML=domestic.map(item=>{const d=item.domesticTrend;return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${escapeHtml(d.signalDate||"-")}</td><td>${turtlePrice(d.breakoutLevel,item)}</td><td>${turtleLargeMoney(d.signalTurnover,item)}</td><td>${turtleSignedShares(d.signalInstitutionNet)}</td><td>${turtleSignedShares(d.signalForeignNet)}</td><td>${d.bearish?"예":"-"}</td><td>${d.volumeDown?"예":"-"}</td><td>${turtlePrice(d.ma5,item)}</td><td>${turtlePrice(d.ma10,item)}</td><td>${domesticTrendBadge(d)}</td></tr>`;}).join("")||`<tr><td colspan="12">20일 신고가·500억 거래대금·양봉·수급 조건을 충족한 종목이 없습니다.</td></tr>`;
+        return;
+      }
       const fullRow=item=>{const unit=turtleUnit(item,settings),base=Number(item.entry1),plan=turtleStagePlan(item);return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${unit.toLocaleString()}주</td><td>${turtlePrice(base,item)}</td><td>${turtlePrice(base+.5*item.n,item)}</td><td>${turtlePrice(base+item.n,item)}</td><td>${turtlePrice(base+1.5*item.n,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${plan.stage?plan.stage+"차":"미진입"}<br><span class="hint">${(unit*plan.stage).toLocaleString()}주</span></td><td>${turtlePrice(plan.stop,item)}</td><td>${turtleStateBadge(item)}</td></tr>`;};
       document.getElementById("turtlePerfectRows").innerHTML=perfect.length?perfect.map(fullRow).join(""):`<tr><td colspan="18">현재 완전 진입 조건을 충족한 종목이 없습니다.</td></tr>`;
       document.getElementById("turtleTrackingRows").innerHTML=tracking.length?tracking.map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtleStateBadge(item)}</td></tr>`).join(""):`<tr><td colspan="12">돌파 근접 또는 상승 추세 종목이 없습니다.</td></tr>`;
@@ -2228,7 +2248,7 @@
     function resetTurtleScan(){turtleScan={rows:[],next:0,total:0,running:false,signature:""};turtleSelectedTicker="";localStorage.removeItem("turtleAdxScanV2");renderTurtle();}
     async function scanTurtle(){
       if(turtleScan.running)return;const settings=turtleSettingsFromUi(),signature=turtleSignature(settings);localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(settings));if(turtleScan.signature!==signature||(turtleScan.total&&turtleScan.next>=turtleScan.total))turtleScan={rows:[],next:0,total:0,running:false,signature};turtleScan.signature=signature;turtleScan.running=true;renderTurtle();
-      try{do{const payload=await jsonpRequest({action:"turtleBatch",universe:settings.universe,start:turtleScan.next,count:5,extra:settings.extra,entry1:settings.entry1,exit1:settings.exit1,entry2:settings.entry2,exit2:settings.exit2,atrPeriod:settings.atrPeriod,adxPeriod:settings.adxPeriod,minAdx:settings.minAdx},60000);if(!payload||!payload.ok)throw new Error(payload&&payload.error||"터틀 분석 응답 오류");turtleScan.rows.push(...(payload.rows||[]));turtleScan.next=payload.next;turtleScan.total=payload.total;localStorage.setItem("turtleAdxScanV2",JSON.stringify({...turtleScan,running:false}));renderTurtle();if(payload.done)break;await new Promise(resolve=>setTimeout(resolve,120));}while(turtleScan.next<turtleScan.total);}catch(error){console.warn("Turtle scan failed",error);document.getElementById("turtleProgress").textContent=`${turtleScan.next}/${turtleScan.total||"?"}에서 일시 중단 · 다시 누르면 이어집니다. (${error.message})`;}finally{turtleScan.running=false;localStorage.setItem("turtleAdxScanV2",JSON.stringify(turtleScan));renderTurtle();}
+      try{do{const payload=await jsonpRequest({action:"turtleBatch",strategy:settings.strategy,universe:settings.universe,start:turtleScan.next,count:5,extra:settings.extra,entry1:settings.entry1,exit1:settings.exit1,entry2:settings.entry2,exit2:settings.exit2,atrPeriod:settings.atrPeriod,adxPeriod:settings.adxPeriod,minAdx:settings.minAdx},60000);if(!payload||!payload.ok)throw new Error(payload&&payload.error||"터틀 분석 응답 오류");turtleScan.rows.push(...(payload.rows||[]));turtleScan.next=payload.next;turtleScan.total=payload.total;localStorage.setItem("turtleAdxScanV2",JSON.stringify({...turtleScan,running:false}));renderTurtle();if(payload.done)break;await new Promise(resolve=>setTimeout(resolve,120));}while(turtleScan.next<turtleScan.total);}catch(error){console.warn("Turtle scan failed",error);document.getElementById("turtleProgress").textContent=`${turtleScan.next}/${turtleScan.total||"?"}에서 일시 중단 · 다시 누르면 이어집니다. (${error.message})`;}finally{turtleScan.running=false;localStorage.setItem("turtleAdxScanV2",JSON.stringify(turtleScan));renderTurtle();}
     }
 
     function render(includeEditor = true) {
@@ -2745,6 +2765,11 @@
     document.getElementById("usPatternFilter").addEventListener("change", renderUsPatterns);
     document.getElementById("scanTurtle").addEventListener("click", scanTurtle);
     document.getElementById("resetTurtle").addEventListener("click", resetTurtleScan);
+    document.getElementById("turtleStrategy").addEventListener("change", event=>{
+      if(event.target.value==="PULLBACK_KR"&&document.getElementById("turtleUniverse").value==="NASDAQ100")document.getElementById("turtleUniverse").value="KOSPI200";
+      localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(turtleSettingsFromUi()));
+      resetTurtleScan();
+    });
     ["turtleCapital","turtleUsCapital"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{
       localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(turtleSettingsFromUi()));
       renderTurtle();
@@ -2779,7 +2804,7 @@
       const item = turtleScan.rows.find(candidate => !candidate.error && candidate.ticker === turtleSelectedTicker);
       if (item) renderTurtleChart(item);
     });
-    ["turtlePerfectRows", "turtleTrackingRows", "turtleWatchRows"].forEach(id => document.getElementById(id).addEventListener("click", event => {
+    ["turtlePerfectRows", "turtleTrackingRows", "turtleWatchRows", "turtleDomesticRows"].forEach(id => document.getElementById(id).addEventListener("click", event => {
       if (event.target.closest("a")) return;
       const row = event.target.closest("tr[data-turtle-ticker]");
       if (!row) return;
@@ -2873,7 +2898,7 @@
       try {
         const savedTurtle = JSON.parse(localStorage.getItem("turtleAdxSettingsV1") || "null");
         if (savedTurtle) {
-          const ids = { universe:"turtleUniverse", capital:"turtleCapital", usCapital:"turtleUsCapital", extra:"turtleExtra", minAdx:"turtleMinAdx", entry1:"turtleEntry1", exit1:"turtleExit1", entry2:"turtleEntry2", exit2:"turtleExit2", atrPeriod:"turtleAtr", adxPeriod:"turtleAdx" };
+          const ids = { strategy:"turtleStrategy", universe:"turtleUniverse", capital:"turtleCapital", usCapital:"turtleUsCapital", extra:"turtleExtra", minAdx:"turtleMinAdx", entry1:"turtleEntry1", exit1:"turtleExit1", entry2:"turtleEntry2", exit2:"turtleExit2", atrPeriod:"turtleAtr", adxPeriod:"turtleAdx" };
           Object.entries(ids).forEach(([key,id]) => { if (savedTurtle[key] != null) document.getElementById(id).value = savedTurtle[key]; });
         }
       } catch (error) { console.warn("터틀 설정 복원 실패", error); }
