@@ -637,7 +637,7 @@
     <header>
       <div>
         <h1>포트폴리오 분석</h1>
-        <div class="subtitle">종목/평단/수량 중심으로 계산하는 단일 HTML 대시보드</div>
+        <div class="subtitle">KB 잔고·보유종목·자산원장 중심의 포트폴리오 관리 웹앱</div>
       </div>
       <div class="actions">
         <button id="toggleMask" title="금액 표시를 숨기거나 다시 보입니다">금액 가리기</button>
@@ -664,17 +664,11 @@
     </section>
 
     <nav class="top-tabs" aria-label="상단 보기 전환">
-      <button class="tab-button active" data-view="dashboardView">대시보드</button>
-      <button class="tab-button" data-view="aiView">AI 포트폴리오 진단</button>
-      <button class="tab-button" data-view="quantView">퀀트 분석</button>
-      <button class="tab-button" data-view="kospiView">코스피200 TOP20</button>
-      <button class="tab-button" data-view="patternView">국장 조건검색</button>
-      <button class="tab-button" data-view="nasdaqView">나스닥100 TOP20</button>
-      <button class="tab-button" data-view="usPatternView">미장 조건검색</button>
-      <button class="tab-button" data-view="turtleView">터틀·ADX 발굴</button>
+      <button class="tab-button active" data-view="dashboardView">KB 잔고·보유종목</button>
+      <button class="tab-button" data-view="ledgerView">자산원장</button>
+      <button class="tab-button" data-view="aiView">포트폴리오 진단</button>
       <button class="tab-button" data-view="marketView">시장 지표</button>
       <button class="tab-button" data-view="historyView">성과 검증</button>
-      <button class="tab-button" data-view="ledgerView">자산원장</button>
     </nav>
 
     <div class="view" id="dashboardView">
@@ -733,7 +727,7 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <h2>AI 포트폴리오 진단</h2>
+              <h2>포트폴리오 진단</h2>
               <div class="hint">현재 입력값 기준의 룰 기반 진단입니다. 실제 매매 전에는 별도 검토가 필요합니다.</div>
             </div>
             <button id="runDiagnosis" class="primary">진단 새로고침</button>
@@ -763,185 +757,10 @@
       </section>
     </section>
 
-    <section class="view" id="quantView" hidden>
-      <section class="quant-summary" id="quantSummary"></section>
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <h2>보유 종목 퀀트 순위</h2>
-            <div class="hint">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%</div>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="quant-table">
-            <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>안정성</th><th>신뢰도</th><th>PER</th><th>PBR</th><th>ROE %</th><th>부채비율 %</th><th>EPS 성장 %</th><th>6개월 %</th><th>12-1개월 %</th><th>변동성 %</th><th>MDD %</th></tr></thead>
-            <tbody id="quantRows"></tbody>
-          </table>
-        </div>
-        <div class="quant-note">가치 25% · 품질 25% · 성장 20% · 모멘텀 20% · 안정성 10%. 누락 지표는 가중치에서 제외하며 신뢰도에 반영합니다. ETF는 기업과 분리합니다. 퀀트 점수는 비교·점검용이며 매수 신호가 아닙니다.</div>
-      </section>
-    </section>
-
-    <section class="view" id="kospiView" hidden>
-      <section class="panel leader-panel">
-        <div class="panel-head"><div><h2>시장 주도주 TOP10</h2><div class="hint">코스피200 대비 상대강도 30% · 거래량 20% · 추세 20% · EPS 성장 20% · 위험관리 10%</div></div></div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>주도점수</th><th>국면</th><th>RS 1개월</th><th>RS 3개월</th><th>RS 6개월</th><th>거래량</th><th>20일 추세</th><th>60일 추세</th><th>EPS성장</th><th>안정성</th></tr></thead>
-          <tbody id="leaderRows"></tbody>
-        </table></div>
-        <div class="quant-note">RS는 KODEX200(069500)을 코스피200 대용 기준으로 사용한 초과수익률입니다. 과열 종목은 제외하지 않고 국면으로 표시합니다.</div>
-      </section>
-      <section class="quant-summary" id="reviewSummary"></section>
-      <section class="panel review-panel">
-        <div class="panel-head"><div><h2>투자검토 TOP10</h2><div class="hint">종합 70+ · 신뢰도 80%+ · 안정성 40+ · MDD -35% 이내 · 과열 제외</div></div></div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>안정성</th><th>MDD</th><th>6개월</th><th>12-1개월</th><th>판정</th></tr></thead>
-          <tbody id="reviewRows"></tbody>
-        </table></div>
-        <div class="quant-note" id="reviewRejected">분석 완료 후 위험 필터 탈락 사유가 표시됩니다.</div>
-      </section>
-      <section class="panel">
-        <div class="panel-head">
-          <div><h2>코스피200 퀀트 TOP20</h2><div class="hint" id="kospiProgress">분석 전 · 결과는 이 PC에 이어서 저장됩니다.</div></div>
-          <button class="primary" id="scanKospi200">분석 시작</button>
-        </div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>가치</th><th>품질</th><th>성장</th><th>모멘텀</th><th>안정성</th><th>신뢰도</th><th>PER</th><th>PBR</th><th>ROE</th><th>부채</th><th>EPS성장</th><th>6개월</th><th>12-1개월</th><th>변동성</th><th>MDD</th></tr></thead>
-          <tbody id="kospiRows"></tbody>
-        </table></div>
-        <div class="quant-note">신뢰도 80% 이상만 순위에 포함합니다. 전체 200종목 분석은 수 분 걸릴 수 있으며 중단 후 다시 누르면 이어서 진행합니다.</div>
-      </section>
-    </section>
-
-    <section class="view" id="patternView" hidden>
-      <section class="quant-summary" id="patternSummary"></section>
-      <section class="panel">
-        <div class="panel-head">
-          <div><h2>코스피200 차트 조건검색</h2><div class="hint">60일 박스 상·하단과 현재 위치 · 이동평균 · RSI · 거래량 · 낙폭을 함께 확인합니다.</div></div>
-          <div class="actions">
-            <select id="patternFilter" aria-label="차트 조건 선택">
-              <option value="all">전체 후보</option>
-              <option value="box">박스권</option>
-              <option value="box-lower">박스권 하단</option>
-              <option value="box-middle">박스권 중단</option>
-              <option value="box-upper">박스권 상단</option>
-              <option value="box-breakout">박스 상단 돌파</option>
-              <option value="box-breakdown">박스 하단 이탈</option>
-              <option value="uptrend">우상향</option>
-              <option value="pullback">눌림목</option>
-              <option value="golden">골든크로스</option>
-              <option value="volume">거래량 증가</option>
-            </select>
-            <button class="primary" id="scanPatterns">조건 분석 갱신</button>
-          </div>
-        </div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>박스 위치</th><th>60일 박스폭</th><th>하단</th><th>상단</th><th>20일 추세</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th><th>판정</th></tr></thead>
-          <tbody id="patternRows"></tbody>
-        </table></div>
-        <div class="quant-note" id="patternNote">먼저 코스피200 분석을 완료하면 조건별 후보가 표시됩니다. 종목명을 누르면 네이버 차트가 열립니다.</div>
-      </section>
-    </section>
-
-    <section class="view" id="nasdaqView" hidden>
-      <section class="quant-summary" id="nasdaqSummary"></section>
-      <section class="panel">
-        <div class="panel-head">
-          <div><h2>나스닥100 기술점수 TOP20</h2><div class="hint" id="nasdaqProgress">분석 전 · 추세 30% · 모멘텀 30% · 거래량 15% · 안정성 25%</div></div>
-          <button class="primary" id="scanNasdaq">나스닥100 분석 시작</button>
-        </div>
-        <div class="custom-symbol-manager">
-          <div><strong>내 종목 추가 분석</strong><div class="hint">나스닥100에 없는 미국 종목도 Yahoo Finance 티커로 최대 20개까지 추가할 수 있습니다.</div></div>
-          <div class="custom-symbol-entry"><input id="nasdaqCustomInput" type="text" maxlength="180" placeholder="예: TSM, SOFI, IONQ" autocomplete="off" aria-label="추가할 미국 종목코드"><button class="primary" id="addNasdaqCustom">종목 추가</button></div>
-          <div class="symbol-chips" id="nasdaqCustomList"></div>
-          <div class="hint" id="nasdaqCustomStatus">추가 후 분석을 다시 시작하면 TOP20과 미장 조건검색에 함께 반영됩니다.</div>
-        </div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>종합</th><th>추세</th><th>모멘텀</th><th>거래량</th><th>안정성</th><th>신뢰도</th><th>현재가</th><th>1개월</th><th>6개월</th><th>12-1개월</th><th>변동성</th><th>MDD</th></tr></thead>
-          <tbody id="nasdaqRows"></tbody>
-        </table></div>
-        <div class="panel-head" style="margin-top:18px"><div><h3>내 추가 종목 분석 결과</h3><div class="hint">TOP20 진입 여부와 관계없이 직접 추가한 모든 종목을 표시합니다.</div></div></div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>종목</th><th>종합</th><th>추세</th><th>모멘텀</th><th>거래량</th><th>안정성</th><th>신뢰도</th><th>현재가</th><th>1개월</th><th>6개월</th><th>MDD</th><th>상태</th></tr></thead>
-          <tbody id="nasdaqCustomRows"></tbody>
-        </table></div>
-        <div class="quant-note" id="nasdaqNote">5종목씩 분석하며 중단 후 다시 누르면 이어집니다. 미국장은 재무점수 대신 차트 기반 기술점수로 순위를 계산합니다.</div>
-      </section>
-    </section>
-
-    <section class="view" id="usPatternView" hidden>
-      <section class="quant-summary" id="usPatternSummary"></section>
-      <section class="panel">
-        <div class="panel-head">
-          <div><h2>나스닥100 미장 조건검색</h2><div class="hint">60일 박스 상·하단 · 우상향 · 눌림목 · 골든크로스 · 거래량 증가</div></div>
-          <div class="actions">
-            <select id="usPatternFilter" aria-label="미장 차트 조건 선택">
-              <option value="all">전체 후보</option><option value="box">박스권</option><option value="box-lower">박스권 하단</option><option value="box-middle">박스권 중단</option><option value="box-upper">박스권 상단</option><option value="box-breakout">박스 상단 돌파</option><option value="box-breakdown">박스 하단 이탈</option><option value="uptrend">우상향</option><option value="pullback">눌림목</option><option value="golden">골든크로스</option><option value="volume">거래량 증가</option>
-            </select>
-            <button class="primary" id="scanUsPatterns">조건 분석 갱신</button>
-          </div>
-        </div>
-        <div class="table-wrap"><table class="quant-table">
-          <thead><tr><th>순위</th><th>종목</th><th>조건</th><th>박스 위치</th><th>현재가</th><th>1개월</th><th>6개월</th><th>60일 박스폭</th><th>하단</th><th>상단</th><th>20일선</th><th>60일선</th><th>RSI</th><th>거래량</th><th>MDD</th></tr></thead>
-          <tbody id="usPatternRows"></tbody>
-        </table></div>
-        <div class="quant-note" id="usPatternNote">나스닥100 분석 결과를 함께 사용합니다. 조건 분석 갱신을 누르면 최신 데이터로 처음부터 다시 계산합니다.</div>
-      </section>
-    </section>
-
-    <section class="view" id="turtleView" hidden>
-      <section class="panel">
-        <div class="panel-head">
-          <div><h2>터틀 매매법 + ADX 종목 발굴</h2><div class="hint" id="turtleProgress">분석 대상을 선택하고 시작하세요. 결과는 이 기기에 이어서 저장됩니다.</div></div>
-          <div class="actions"><button id="resetTurtle">결과 초기화</button><button class="primary" id="scanTurtle">분석 시작</button></div>
-        </div>
-        <div class="turtle-controls">
-          <label>전략<select id="turtleStrategy"><option value="TURTLE">터틀·ADX 돌파</option><option value="PULLBACK_KR">국내 20일 신고가 눌림</option></select></label>
-          <label>분석 대상<select id="turtleUniverse"><option value="KOSPI200">코스피200</option><option value="KOSDAQ150">코스닥150</option><option value="NASDAQ100">나스닥100</option><option value="ALL">전체 시장</option></select></label>
-          <label>국내 투자원금(원)<input id="turtleCapital" type="number" min="100000" step="100000" value="50000000"></label>
-          <label>나스닥 투자원금(USD)<input id="turtleUsCapital" type="number" min="100" step="100" value="10000"></label>
-          <label class="wide">추가 종목<input id="turtleExtra" type="text" placeholder="예: 005930.KS, 086520.KQ, NVDA"></label>
-          <label>최소 ADX<input id="turtleMinAdx" type="number" min="5" max="80" value="20"></label>
-          <label>Sys1 진입<input id="turtleEntry1" type="number" min="2" max="100" value="20"></label>
-          <label>Sys1 청산<input id="turtleExit1" type="number" min="2" max="100" value="10"></label>
-          <label>Sys2 진입<input id="turtleEntry2" type="number" min="2" max="150" value="55"></label>
-          <label>Sys2 청산<input id="turtleExit2" type="number" min="2" max="100" value="20"></label>
-          <label>ATR(N) 기간<input id="turtleAtr" type="number" min="2" max="100" value="20"></label>
-          <label>ADX 기간<input id="turtleAdx" type="number" min="2" max="100" value="14"></label>
-        </div>
-        <div class="turtle-legend"><span class="turtle-state perfect">완전 진입: 돌파+ADX+DI</span><span class="turtle-state near">돌파 2% 이내</span><span class="turtle-state uptrend">상승 추세</span><span class="turtle-state exit">청산 경계</span></div>
-      </section>
-      <section class="quant-summary" id="turtleSummary"></section>
-      <section class="turtle-result-tools" aria-label="발굴 결과 필터와 정렬">
-        <div><div class="hint" style="margin-bottom:5px">시장 필터</div><div class="turtle-filter-buttons" id="turtleMarketFilters"><button class="turtle-filter-button active" data-market="ALL">전체</button><button class="turtle-filter-button" data-market="KOSPI200">코스피200</button><button class="turtle-filter-button" data-market="KOSDAQ150">코스닥150</button><button class="turtle-filter-button" data-market="NASDAQ100">나스닥100</button></div></div>
-        <label>시가총액<select id="turtleMarketCapFilter"><option value="ALL">전체</option><option value="LOW">3,000억 / $1B 이상</option><option value="MID">5,000억 / $5B 이상</option><option value="HIGH">1조 / $10B 이상</option></select></label>
-        <label>20일 평균 거래대금<select id="turtleTurnoverFilter"><option value="ALL">전체</option><option value="LOW">30억 / $10M 이상</option><option value="MID">50억 / $30M 이상</option><option value="HIGH">100억 / $50M 이상</option><option value="VERY_HIGH">300억 / $100M 이상</option></select></label>
-        <label>정렬<select id="turtleResultSort"><option value="ENTRY">진입가 근접 순</option><option value="RS">RS 높은 순</option><option value="ADX">ADX 높은 순</option><option value="MARKET_CAP">시가총액 높은 순</option><option value="TURNOVER">거래대금 높은 순</option><option value="NAME">종목명 순</option></select></label>
-        <span class="hint" id="turtleResultCount"></span>
-      </section>
-      <section class="panel" id="turtleDomesticPanel" hidden>
-        <div class="panel-head"><div><h2>🇰🇷 20일 신고가 눌림 스윙 후보</h2><div class="hint">종가 기준 20일 신고가 · 당일 거래대금 500억 이상 · 깔끔한 양봉 · 기관/외국인 순매수 후 거래량 감소 음봉</div></div></div>
-        <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>신고가 발생일</th><th>20일 신고가</th><th>돌파일 거래대금</th><th>기관 순매수</th><th>외국인 순매수</th><th>음봉</th><th>거래량 감소</th><th>5일선</th><th>10일선</th><th>상태</th></tr></thead><tbody id="turtleDomesticRows"></tbody></table></div>
-      </section>
-      <section class="panel" id="turtleClassicPerfectPanel">
-        <div class="panel-head"><div><h2>🔥 오늘의 추세추종 발굴 종목</h2><div class="hint">현재가 ≥ 직전 20일 최고가 · ADX 기준 이상 · +DI &gt; -DI</div></div></div>
-        <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>시가총액</th><th>20일 평균 거래대금</th><th>ADX</th><th>RS</th><th>+DI</th><th>-DI</th><th>N(ATR)</th><th>1 Unit</th><th>1차 진입</th><th>2차(+0.5N)</th><th>3차(+1.0N)</th><th>4차(+1.5N)</th><th>10일 청산</th><th>현재 단계</th><th>통합 손절(-2N)</th><th>상태</th></tr></thead><tbody id="turtlePerfectRows"></tbody></table></div>
-      </section>
-      <section class="panel" id="turtleClassicTrackingPanel">
-        <div class="panel-head"><div><h2>⚡ 돌파 근접·상승 추세</h2><div class="hint">돌파선 2% 이내 또는 ADX/DI가 확인된 추세 종목</div></div></div>
-        <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>시가총액</th><th>20일 평균 거래대금</th><th>진입선 거리</th><th>ADX</th><th>RS</th><th>+DI</th><th>-DI</th><th>N</th><th>20일 진입</th><th>상태</th></tr></thead><tbody id="turtleTrackingRows"></tbody></table></div>
-      </section>
-      <section class="panel" id="turtleClassicWatchPanel">
-        <div class="panel-head"><div><h2>👀 관망 및 추적 종목</h2><div class="hint">조건 미충족·ADX 확인 필요·청산 경계</div></div></div>
-        <div class="table-wrap"><table class="quant-table turtle-table"><thead><tr><th>종목</th><th>현재가</th><th>시가총액</th><th>20일 평균 거래대금</th><th>ADX</th><th>RS</th><th>+DI</th><th>-DI</th><th>20일 진입</th><th>10일 청산</th><th>거리</th><th>상태</th></tr></thead><tbody id="turtleWatchRows"></tbody></table></div>
-      </section>
-      <div class="quant-note">종목명 이외의 표 행을 누르면 최근 60일 차트·4회 분할 진입·RS 상세가 팝업으로 열립니다. RS는 진입을 차단하지 않는 참고지표이며 전체 분석이 끝난 뒤 순위가 확정됩니다. 표준 터틀식에 따라 진입·청산선은 오늘 봉을 제외한 직전 기간으로 계산합니다.</div>
-    </section>
-
     <section class="view" id="historyView" hidden>
       <section class="quant-summary" id="historySummary"></section>
       <section class="panel">
-        <div class="panel-head"><div><h2>전략 성과 검증</h2><div class="hint" id="historyStatus">분석 결과가 누적되면 1·3·6개월 성과가 표시됩니다.</div></div><button id="loadHistory">기록 불러오기</button></div>
+        <div class="panel-head"><div><h2>성과 검증</h2><div class="hint" id="historyStatus">저장된 전략 기록의 1·3·6개월 성과를 확인합니다.</div></div><button id="loadHistory">기록 불러오기</button></div>
         <div class="table-wrap"><table><thead><tr><th>전략</th><th>기록 수</th><th>1개월 수익률</th><th>1개월 초과</th><th>3개월 수익률</th><th>3개월 초과</th><th>6개월 수익률</th><th>6개월 초과</th></tr></thead><tbody id="historyRows"></tbody></table></div>
         <div class="quant-note">기준지수는 KODEX200(069500)입니다. 첫 성과는 기록 후 약 1개월부터 계산됩니다.</div>
       </section>
@@ -950,7 +769,7 @@
     <section class="view" id="marketView" hidden>
       <section class="panel">
         <div class="panel-head">
-          <div><h2>국장·미장 시장 지표</h2><div class="hint" id="marketIndicatorStatus">지표는 관찰용으로만 수집하며 퀀트 점수에 반영하지 않습니다.</div></div>
+          <div><h2>국장·미장 시장 지표</h2><div class="hint" id="marketIndicatorStatus">지표는 포트폴리오 판단을 돕는 관찰용 정보입니다.</div></div>
           <button id="refreshIndicators" class="primary">시장 지표 갱신</button>
         </div>
       </section>
@@ -1013,21 +832,6 @@
     </div>
   </dialog>
 
-  <dialog class="indicator-dialog" id="turtleDialog">
-    <div class="indicator-dialog-head">
-      <div><h2 id="turtleDialogTitle">터틀 60일 차트</h2><div class="hint" id="turtleDialogMeta"></div></div>
-      <button class="indicator-dialog-close" id="turtleDialogClose" aria-label="닫기">×</button>
-    </div>
-    <div class="indicator-dialog-body">
-      <div class="turtle-dialog-summary" id="turtleDialogSummary"></div>
-      <div class="turtle-stage-control"><label for="turtleEntryStage">실제 진입 단계</label><select id="turtleEntryStage"><option value="0">미진입</option><option value="1">1차 진입</option><option value="2">2차 진입</option><option value="3">3차 진입</option><option value="4">4차 진입</option></select><span class="hint">종목별로 이 기기에 저장됩니다.</span></div>
-      <div><h3>규모·유동성</h3><div class="turtle-dialog-summary" id="turtleLiquiditySummary"></div></div>
-      <div><h3>상대강도(RS)</h3><div class="turtle-dialog-summary" id="turtleRsSummary"></div><div class="hint" id="turtleRsGuide"></div></div>
-      <div class="turtle-chart" id="turtleChart"><div class="ledger-empty">종목을 선택하세요.</div></div>
-      <div><h3>4회 분할 진입 계획</h3><div class="turtle-guide-grid" id="turtleGuide"></div></div>
-      <div class="turtle-dialog-note">1차는 직전 20일 최고가, 이후에는 0.5N 간격으로 같은 1 Unit 수량을 추가합니다. 선택한 진입 단계의 최근 진입가에서 2N 아래로 통합 손절선이 올라가며, 10일 청산선은 매일 분석값으로 별도 갱신됩니다. 실제 체결가와 수수료·슬리피지는 반영하지 않은 투자 판단 보조값입니다.</div>
-    </div>
-  </dialog>
 
   <script src="portfolio-config.js"></script>
   <script>
@@ -1044,29 +848,11 @@
     let syncReady = false;
     let syncTimer = null;
     let jsonpSeq = 0;
-    let kospiScan = JSON.parse(localStorage.getItem("kospi200Scan") || "null") || { rows: [], next: 0, total: 200, running: false };
-    let nasdaqCustomSymbols = JSON.parse(localStorage.getItem("nasdaqCustomSymbols") || "[]");
-    if (!Array.isArray(nasdaqCustomSymbols)) nasdaqCustomSymbols = [];
-    nasdaqCustomSymbols = Array.from(new Set(nasdaqCustomSymbols.map(value => String(value).toUpperCase()).filter(value => /^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value)))).slice(0, 20);
-    let nasdaqScan = JSON.parse(localStorage.getItem("nasdaq100Scan") || "null") || { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
-    const boxScanVersion = "box-position-60d-v1";
-    if (localStorage.getItem("boxScanVersion") !== boxScanVersion) {
-      kospiScan = { rows: [], next: 0, total: 200, running: false };
-      nasdaqScan = { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
-      localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
-      localStorage.setItem("nasdaq100Scan", JSON.stringify(nasdaqScan));
-      localStorage.setItem("boxScanVersion", boxScanVersion);
-    }
+
     let historyRows = [];
     let assetLedger = { daily: [], holdings: [], monthly: [], updatedAt: "" };
     let marketIndicators = JSON.parse(localStorage.getItem("marketIndicators") || "null") || { korea: [], us: [], updatedAt: "" };
-    let turtleScan = JSON.parse(localStorage.getItem("turtleAdxScanV2") || "null") || { rows: [], next: 0, total: 0, running: false, signature: "" };
-    turtleScan.running = false;
-    let turtleSelectedTicker = "";
-    let turtleEntryStages = JSON.parse(localStorage.getItem("turtleEntryStagesV1") || "{}");
-    let turtleResultPrefs = JSON.parse(localStorage.getItem("turtleResultPrefsV1") || "null") || { market:"ALL", sort:"ENTRY", marketCap:"ALL", turnover:"ALL" };
-    if(!["ALL","LOW","MID","HIGH"].includes(turtleResultPrefs.marketCap))turtleResultPrefs.marketCap=Number(turtleResultPrefs.marketCap)>=1e12?"HIGH":Number(turtleResultPrefs.marketCap)>=5e11?"MID":Number(turtleResultPrefs.marketCap)>0?"LOW":"ALL";
-    if(!["ALL","LOW","MID","HIGH","VERY_HIGH"].includes(turtleResultPrefs.turnover))turtleResultPrefs.turnover=Number(turtleResultPrefs.turnover)>=3e10?"VERY_HIGH":Number(turtleResultPrefs.turnover)>=1e10?"HIGH":Number(turtleResultPrefs.turnover)>=5e9?"MID":Number(turtleResultPrefs.turnover)>0?"LOW":"ALL";
+
 
     const defaultConfig = window.PORTFOLIO_CONFIG || {};
     const savedConfig = JSON.parse(localStorage.getItem("portfolioGoogleConfig") || "{}");
@@ -1551,415 +1337,6 @@
       `).join("");
     }
 
-    function metricScore(value, scorer) {
-      const n = Number(value);
-      return !Number.isFinite(n) || n === 0 ? null : clamp(Math.round(scorer(n)), 0, 100);
-    }
-
-    function weightedAvailable(parts) {
-      const available = parts.filter(x => x.score !== null);
-      if (!available.length) return null;
-      return Math.round(available.reduce((sum, x) => sum + x.score * x.weight, 0) / available.reduce((sum, x) => sum + x.weight, 0));
-    }
-
-    function isEtf(r) {
-      return /(^|\s)(ETF|ETN)($|\s)/i.test(String(r.sector || "")) || /^(KODEX|TIGER|RISE|ACE|SOL|HANARO|PLUS|KOSEF|TIMEFOLIO|KBSTAR|ARIRANG)/i.test(String(r.name || "").replace(/\s/g, ""));
-    }
-
-    function quantScores(r) {
-      const metrics = {
-        per: metricScore(r.per, n => 100 - (n - 5) * 2.5), pbr: metricScore(r.pbr, n => 100 - (n - .5) * 13),
-        roe: metricScore(r.roe, n => 35 + n * 2.6), debt: metricScore(r.debt, n => 100 - n * .48),
-        epsGrowth: metricScore(r.epsGrowth, n => 50 + n * 1.25),
-        mom6: metricScore(r.mom6, n => 50 + n * 1.5), mom12: metricScore(r.mom12, n => 50 + n),
-        volatility: metricScore(r.volatility, n => 100 - (n - 10) * 2.5), mdd: metricScore(r.mdd, n => 100 + n * 2)
-      };
-      const value = weightedAvailable([{ score: metrics.per, weight: 1 }, { score: metrics.pbr, weight: 1 }]);
-      const quality = weightedAvailable([{ score: metrics.roe, weight: .6 }, { score: metrics.debt, weight: .4 }]);
-      const growth = metrics.epsGrowth;
-      const momentum = weightedAvailable([{ score: metrics.mom6, weight: .45 }, { score: metrics.mom12, weight: .55 }]);
-      const stability = weightedAvailable([{ score: metrics.volatility, weight: .5 }, { score: metrics.mdd, weight: .5 }]);
-      const categories = [{ score: value, weight: 25 }, { score: quality, weight: 25 }, { score: growth, weight: 20 }, { score: momentum, weight: 20 }, { score: stability, weight: 10 }];
-      const total = weightedAvailable(categories);
-      const available = Object.values(metrics).filter(v => v !== null).length;
-      const confidence = Math.round(available / Object.keys(metrics).length * 100);
-      return { total: total ?? 0, value, quality, growth, momentum, stability, confidence };
-    }
-
-    function renderQuant(items) {
-      const stocks = items.filter(x => !x.isCash && !isEtf(x));
-      const etfs = items.filter(x => !x.isCash && isEtf(x));
-      const ranked = stocks.map(item => ({ item, score: quantScores(item) })).sort((a, b) => b.score.total - a.score.total);
-      const average = ranked.length ? Math.round(ranked.reduce((s, x) => s + x.score.total, 0) / ranked.length) : 0;
-      const top = ranked[0];
-      const reliable = ranked.filter(x => x.score.confidence >= 80).length;
-      document.getElementById("quantSummary").innerHTML = [
-        ["평균 퀀트 점수", `${average}점`], ["1위 종목", top ? top.item.name : "-"], ["신뢰도 80%+", `${reliable}개`], ["ETF 별도", `${etfs.length}개`]
-      ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-      document.getElementById("quantRows").innerHTML = ranked.map(({ item, score }, rank) => {
-        const i = rows.findIndex(r => normalizeTicker(r.ticker) === item.ticker);
-        const input = (key, value) => `<input data-i="${i}" data-k="${key}" type="number" step="0.1" value="${Number(value || 0)}">`;
-        const show = v => v === null ? "-" : v;
-        const confidenceLabel = score.confidence >= 80 ? "높음" : score.confidence >= 60 ? "보통" : "낮음";
-        return `<tr><td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${show(score.value)}</td><td>${show(score.quality)}</td><td>${show(score.growth)}</td><td>${show(score.momentum)}</td><td>${show(score.stability)}</td><td>${score.confidence}%<br><span class="hint">${confidenceLabel}</span></td><td>${input("per", item.per)}</td><td>${input("pbr", item.pbr)}</td><td>${input("roe", item.roe)}</td><td>${input("debt", item.debt)}</td><td>${input("epsGrowth", item.epsGrowth)}</td><td>${Number(item.mom6 || 0).toFixed(1)}</td><td>${Number(item.mom12 || 0).toFixed(1)}</td><td>${Number(item.volatility || 0).toFixed(1)}</td><td>${Number(item.mdd || 0).toFixed(1)}</td></tr>`;
-      }).join("") + (etfs.length ? `<tr><td colspan="18"><strong>ETF 별도 분석</strong> · ${etfs.map(x => `${x.name} (${x.ticker})`).join(", ")} — 기업 재무비율 순위에서 제외</td></tr>` : "");
-    }
-
-    function leaderScore(item) {
-      const score = quantScores(item);
-      const rs = weightedAvailable([
-        { score: metricScore(item.rs1, n => 50 + n * 2), weight: .25 },
-        { score: metricScore(item.rs3, n => 50 + n * 1.2), weight: .35 },
-        { score: metricScore(item.rs6, n => 50 + n * .8), weight: .40 }
-      ]);
-      const volume = metricScore(item.volumeRatio, n => 50 + (n - 100) * .35);
-      const trend = weightedAvailable([
-        { score: metricScore(item.ma20Gap, n => 50 + n * 3), weight: .55 },
-        { score: metricScore(item.ma60Gap, n => 50 + n * 2), weight: .45 }
-      ]);
-      const growth = metricScore(item.epsGrowth, n => 50 + n * 1.25);
-      const risk = score.stability;
-      const total = weightedAvailable([{ score: rs, weight: 30 }, { score: volume, weight: 20 }, { score: trend, weight: 20 }, { score: growth, weight: 20 }, { score: risk, weight: 10 }]);
-      const available = [rs, volume, trend, growth, risk].filter(v => v !== null).length;
-      return { total: total ?? 0, rs, volume, trend, growth, risk, confidence: available / 5 * 100 };
-    }
-
-    function leadershipPhase(item) {
-      const rs1 = Number(item.rs1 || 0), rs3 = Number(item.rs3 || 0);
-      const ma20 = Number(item.ma20Gap || 0), ma60 = Number(item.ma60Gap || 0);
-      if (ma20 < 0 && rs1 < 0) return "추세 이탈";
-      if (Number(item.mom6 || 0) > 100 || rs3 > 50 || Number(item.volumeRatio || 0) > 250) return "과열 주의";
-      if (rs1 > 0 && rs3 > 0 && ma20 > 0 && ma60 > 0) return "상승 지속";
-      if (rs1 > 0 && ma20 > 0) return "초기 주도";
-      return "관찰";
-    }
-
-    function renderMarketLeaders(scored) {
-      const leaders = scored.map(x => ({ item: x.item, leader: leaderScore(x.item) }))
-        .filter(x => x.leader.confidence >= 80)
-        .sort((a, b) => b.leader.total - a.leader.total)
-        .slice(0, 10);
-      const fmt = value => Number(value || 0).toFixed(1);
-      document.getElementById("leaderRows").innerHTML = leaders.length ? leaders.map(({ item, leader }, rank) => `<tr>
-        <td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(leader.total - 60)}">${leader.total}</span></td><td><span class="phase-badge">${leadershipPhase(item)}</span></td>
-        <td>${fmt(item.rs1)}%</td><td>${fmt(item.rs3)}%</td><td>${fmt(item.rs6)}%</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.epsGrowth)}%</td><td>${leader.risk ?? "-"}</td></tr>`).join("") : `<tr><td colspan="12">새 시장지표가 필요합니다. 아래의 다시 분석을 눌러주세요.</td></tr>`;
-    }
-
-    function renderKospi200() {
-      const scored = kospiScan.rows
-        .filter(item => !item.error)
-        .map(item => ({ item, score: quantScores(item) }))
-        .sort((a, b) => b.score.total - a.score.total);
-      const ranked = scored.filter(x => x.score.confidence >= 80).slice(0, 20);
-      const show = value => value === null ? "-" : value;
-      document.getElementById("kospiRows").innerHTML = ranked.map(({ item, score }, rank) => `<tr>
-        <td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td>
-        <td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${show(score.value)}</td><td>${show(score.quality)}</td><td>${show(score.growth)}</td><td>${show(score.momentum)}</td><td>${show(score.stability)}</td><td>${score.confidence}%</td>
-        <td>${Number(item.per || 0).toFixed(2)}</td><td>${Number(item.pbr || 0).toFixed(2)}</td><td>${Number(item.roe || 0).toFixed(2)}</td><td>${Number(item.debt || 0).toFixed(2)}</td><td>${Number(item.epsGrowth || 0).toFixed(2)}</td>
-        <td>${Number(item.mom6 || 0).toFixed(1)}</td><td>${Number(item.mom12 || 0).toFixed(1)}</td><td>${Number(item.volatility || 0).toFixed(1)}</td><td>${Number(item.mdd || 0).toFixed(1)}</td></tr>`).join("");
-      const failed = kospiScan.rows.filter(item => item.error).length;
-      document.getElementById("kospiProgress").textContent = `${kospiScan.rows.length}/${kospiScan.total || 200}종목 분석 · 유효 ${kospiScan.rows.length - failed} · TOP ${ranked.length}`;
-      document.getElementById("scanKospi200").textContent = kospiScan.running ? "분석 중…" : kospiScan.next >= kospiScan.total ? "다시 분석" : kospiScan.next ? "이어 분석" : "분석 시작";
-      renderInvestmentReview(scored);
-      renderMarketLeaders(scored);
-      renderChartPatterns(scored);
-    }
-
-    function chartPatternFlags(item) {
-      const boxRange = Number(item.boxRange60);
-      const trend20 = Number(item.trend20);
-      const ma20 = Number(item.ma20Gap);
-      const ma60 = Number(item.ma60Gap);
-      const rsi = Number(item.rsi);
-      const volume = Number(item.volumeRatio);
-      const mdd = Number(item.mdd);
-      const box = boxPositionView(item);
-      const flags = {
-        box: Number.isFinite(boxRange) && boxRange > 0 && boxRange <= 20 && Math.abs(ma20) <= 8,
-        uptrend: ma20 >= 0 && ma60 >= 3 && trend20 > 0 && Number(item.mom6 || 0) > 0,
-        pullback: ma60 >= 3 && ma20 >= -5 && ma20 <= 3 && rsi >= 35 && rsi <= 60,
-        golden: Number(item.goldenCross || 0) === 1,
-        volume: volume >= 120
-      };
-      const risk = mdd < -35 || rsi >= 75 || Number(item.volatility || 0) >= 70;
-      return { flags, risk, box };
-    }
-
-    function boxPositionView(item) {
-      const position = Number(item && item.boxPosition60);
-      let code = String(item && item.boxState60 || "unknown");
-      if (!['lower', 'middle', 'upper', 'breakout', 'breakdown'].includes(code)) {
-        code = Number.isFinite(position) ? (position <= 25 ? 'lower' : position >= 75 ? 'upper' : 'middle') : 'unknown';
-      }
-      const labels = { lower: '박스 하단', middle: '박스 중단', upper: '박스 상단', breakout: '상단 돌파', breakdown: '하단 이탈', unknown: '계산 대기' };
-      return { code, label: labels[code] || labels.unknown, position };
-    }
-
-    function patternFilterMatches(pattern, selected) {
-      const boxFilters = { 'box-lower': 'lower', 'box-middle': 'middle', 'box-upper': 'upper', 'box-breakout': 'breakout', 'box-breakdown': 'breakdown' };
-      if (boxFilters[selected]) return pattern.flags.box && pattern.box.code === boxFilters[selected];
-      if (selected === 'all') return Object.values(pattern.flags).some(Boolean);
-      return Boolean(pattern.flags[selected]);
-    }
-
-    function boxPositionCell(pattern) {
-      const position = Number.isFinite(pattern.box.position) ? `<br><span class="hint">${pattern.box.position.toFixed(0)}%</span>` : '';
-      return `<span class="box-state ${pattern.box.code}">${pattern.box.label}</span>${position}`;
-    }
-
-    function usStockLink(item) {
-      const ticker = String(item.ticker || item.code || "").replace(/[^A-Z0-9.-]/gi, "");
-      return `<a href="${naverWorldStockUrl(ticker)}" target="_blank" rel="noopener">${escapeHtml(item.name || ticker)}</a>`;
-    }
-
-    function naverWorldStockUrl(ticker) { const symbol=String(ticker||"").toUpperCase().replace(/\.(O|N|A)$/i,""); return `https://m.stock.naver.com/worldstock/stock/${encodeURIComponent(symbol+".O")}/total`; }
-
-    function nasdaqTechnicalScore(item) {
-      const trend = weightedAvailable([
-        { score: metricScore(item.ma20Gap, n => 50 + n * 3), weight: .45 },
-        { score: metricScore(item.ma60Gap, n => 50 + n * 2), weight: .35 },
-        { score: metricScore(item.trend20, n => 50 + n * 2), weight: .20 }
-      ]);
-      const momentum = weightedAvailable([
-        { score: metricScore(item.mom1, n => 50 + n * 1.5), weight: .35 },
-        { score: metricScore(item.mom6, n => 50 + n * .8), weight: .65 }
-      ]);
-      const volume = metricScore(item.volumeRatio, n => 50 + (n - 100) * .35);
-      const stability = weightedAvailable([
-        { score: metricScore(item.volatility, n => 85 - n * .7), weight: .45 },
-        { score: metricScore(item.mdd, n => 100 + n * 1.8), weight: .55 }
-      ]);
-      const values = [trend, momentum, volume, stability];
-      const total = weightedAvailable([{ score: trend, weight: 30 }, { score: momentum, weight: 30 }, { score: volume, weight: 15 }, { score: stability, weight: 25 }]);
-      return { total: Math.round(total || 0), trend: Math.round(trend || 0), momentum: Math.round(momentum || 0), volume: Math.round(volume || 0), stability: Math.round(stability || 0), confidence: Math.round(values.filter(v => v !== null).length / 4 * 100) };
-    }
-
-    function renderNasdaqCustomSymbols(message = "") {
-      const list = document.getElementById("nasdaqCustomList");
-      list.innerHTML = nasdaqCustomSymbols.length
-        ? nasdaqCustomSymbols.map(symbol => `<span class="symbol-chip">${escapeHtml(symbol)}<button type="button" data-remove-symbol="${escapeHtml(symbol)}" aria-label="${escapeHtml(symbol)} 삭제">×</button></span>`).join("")
-        : `<span class="hint">현재 직접 추가한 종목이 없습니다.</span>`;
-      document.getElementById("nasdaqCustomStatus").textContent = message || (nasdaqCustomSymbols.length
-        ? `직접 추가 ${nasdaqCustomSymbols.length}개 · 분석을 시작하면 기본 나스닥100과 함께 평가됩니다.`
-        : "추가 후 분석을 다시 시작하면 TOP20과 미장 조건검색에 함께 반영됩니다.");
-    }
-
-    function resetNasdaqForCustomSymbols(message) {
-      nasdaqScan = { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
-      localStorage.setItem("nasdaqCustomSymbols", JSON.stringify(nasdaqCustomSymbols));
-      localStorage.setItem("nasdaq100Scan", JSON.stringify(nasdaqScan));
-      renderNasdaqCustomSymbols(message);
-      renderNasdaq100();
-    }
-
-    function addNasdaqCustomSymbols() {
-      const input = document.getElementById("nasdaqCustomInput");
-      const entered = String(input.value || "").toUpperCase().split(/[\s,;]+/).map(value => value.trim()).filter(Boolean);
-      const valid = entered.filter(value => /^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value));
-      const invalid = entered.filter(value => !/^[A-Z0-9][A-Z0-9.-]{0,11}$/.test(value));
-      if (!valid.length) {
-        renderNasdaqCustomSymbols(invalid.length ? `형식 오류: ${invalid.join(", ")} · 영문 티커를 입력하세요.` : "추가할 종목코드를 입력하세요.");
-        return;
-      }
-      const before = nasdaqCustomSymbols.length;
-      nasdaqCustomSymbols = Array.from(new Set(nasdaqCustomSymbols.concat(valid))).slice(0, 20);
-      input.value = "";
-      const added = nasdaqCustomSymbols.length - before;
-      resetNasdaqForCustomSymbols(added ? `${valid.join(", ")} 추가됨 · 아래 분석 시작 버튼을 눌러주세요.` : "이미 추가된 종목입니다.");
-    }
-
-    function removeNasdaqCustomSymbol(symbol) {
-      nasdaqCustomSymbols = nasdaqCustomSymbols.filter(value => value !== symbol);
-      resetNasdaqForCustomSymbols(`${symbol} 삭제됨 · 분석 결과가 초기화되었습니다.`);
-    }
-
-    function renderNasdaq100() {
-      const valid = nasdaqScan.rows.filter(item => !item.error);
-      const ranked = valid.map(item => ({ item, score: nasdaqTechnicalScore(item) })).sort((a, b) => b.score.total - a.score.total).slice(0, 20);
-      const avg = ranked.length ? Math.round(ranked.reduce((sum, x) => sum + x.score.total, 0) / ranked.length) : 0;
-      const positive = valid.filter(item => Number(item.mom6 || 0) > 0).length;
-      const lowRisk = valid.filter(item => Number(item.mdd || -100) >= -25 && Number(item.volatility || 100) < 55).length;
-      document.getElementById("nasdaqSummary").innerHTML = [["분석 종목", `${valid.length}개`],["TOP20 평균", `${avg}점`],["6개월 상승", `${positive}개`],["저위험 후보", `${lowRisk}개`]].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-      const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
-      document.getElementById("nasdaqRows").innerHTML = ranked.length ? ranked.map(({ item, score }, index) => `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span>${item.sector === "사용자추가" ? `<br><span class="custom-tag">직접 추가</span>` : ""}</td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.trend}</td><td>${score.momentum}</td><td>${score.volume}</td><td>${score.stability}</td><td>${score.confidence}%</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.mom12, "%")}</td><td>${fmt(item.volatility, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`).join("") : `<tr><td colspan="14">나스닥100과 추가 종목 분석을 시작해 주세요.</td></tr>`;
-      const customResults = valid.filter(item => nasdaqCustomSymbols.includes(String(item.ticker || "").toUpperCase())).map(item => ({ item, score: nasdaqTechnicalScore(item) })).sort((a, b) => b.score.total - a.score.total);
-      const analyzedTickers = new Set(nasdaqScan.rows.map(item => String(item.ticker || "").toUpperCase()));
-      const pendingCustom = nasdaqCustomSymbols.filter(symbol => !analyzedTickers.has(symbol));
-      const customRows = customResults.map(({ item, score }) => {
-        const pattern = chartPatternFlags(item);
-        const matched = Object.entries(pattern.flags).filter(([, passed]) => passed).map(([key]) => ({ box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량" }[key])).join(" · ");
-        return `<tr><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td><td>${score.trend}</td><td>${score.momentum}</td><td>${score.volume}</td><td>${score.stability}</td><td>${score.confidence}%</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.mdd, "%")}</td><td>${pattern.risk ? `<span class="negative">위험 주의</span>` : escapeHtml(matched || "일반")}</td></tr>`;
-      });
-      pendingCustom.forEach(symbol => customRows.push(`<tr><td><strong>${escapeHtml(symbol)}</strong></td><td colspan="11" class="hint">분석 대기 · 분석 시작 버튼을 눌러주세요.</td></tr>`));
-      document.getElementById("nasdaqCustomRows").innerHTML = customRows.length ? customRows.join("") : `<tr><td colspan="12">추가한 종목이 없습니다.</td></tr>`;
-      const failed = nasdaqScan.rows.filter(item => item.error).length, analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102 + nasdaqCustomSymbols.length;
-      document.getElementById("nasdaqProgress").textContent = `${analyzed}/${total}종목 분석 · 유효 ${analyzed - failed} · TOP ${ranked.length}`;
-      document.getElementById("scanNasdaq").disabled = nasdaqScan.running;
-      document.getElementById("scanNasdaq").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "다시 분석" : analyzed ? `이어 분석 ${analyzed}/${total}` : "나스닥100 분석 시작";
-      document.getElementById("nasdaqNote").textContent = nasdaqScan.running ? `나스닥100+추가 종목 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `분석 완료 · 유효 ${analyzed - failed}종목 · 직접 추가 ${nasdaqCustomSymbols.length}개 포함 · 최근 1년 차트 기술점수입니다.` : `5종목씩 분석하며 직접 추가 종목도 같은 기준으로 평가합니다.`;
-      renderUsPatterns();
-    }
-
-    function renderUsPatterns() {
-      const labels = { box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량 증가" };
-      const selected = (document.getElementById("usPatternFilter") || {}).value || "all";
-      const evaluated = nasdaqScan.rows.filter(item => !item.error).map(item => ({ item, pattern: chartPatternFlags(item), score: nasdaqTechnicalScore(item) }));
-      const counts = Object.keys(labels).reduce((out, key) => { out[key] = evaluated.filter(x => x.pattern.flags[key] && !x.pattern.risk).length; return out; }, {});
-      const boxStateLabels = { lower: "박스 하단", middle: "박스 중단", upper: "박스 상단", breakout: "상단 돌파", breakdown: "하단 이탈" };
-      const boxStateCounts = Object.keys(boxStateLabels).reduce((out, key) => { out[key] = evaluated.filter(x => x.pattern.flags.box && x.pattern.box.code === key && !x.pattern.risk).length; return out; }, {});
-      document.getElementById("usPatternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("") + Object.entries(boxStateLabels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${boxStateCounts[key]}개</strong></article>`).join("");
-      const candidates = evaluated.filter(x => patternFilterMatches(x.pattern, selected) && !x.pattern.risk).sort((a, b) => Object.values(b.pattern.flags).filter(Boolean).length - Object.values(a.pattern.flags).filter(Boolean).length || b.score.total - a.score.total);
-      const fmt = (value, suffix = "") => Number.isFinite(Number(value)) ? Number(value).toFixed(1) + suffix : "-";
-      const priceFmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-";
-      document.getElementById("usPatternRows").innerHTML = candidates.length ? candidates.map((entry, index) => { const item = entry.item; const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => `<span class="phase-badge">${labels[key]}</span>`).join(" "); return `<tr><td>${index + 1}</td><td><strong>${usStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${tags}</td><td>${boxPositionCell(entry.pattern)}</td><td>${fmt(item.price)}</td><td>${fmt(item.mom1, "%")}</td><td>${fmt(item.mom6, "%")}</td><td>${fmt(item.boxRange60, "%")}</td><td>${priceFmt(item.boxLow60)}</td><td>${priceFmt(item.boxHigh60)}</td><td>${fmt(item.ma20Gap, "%")}</td><td>${fmt(item.ma60Gap, "%")}</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio, "%")}</td><td>${fmt(item.mdd, "%")}</td></tr>`; }).join("") : `<tr><td colspan="15">현재 선택 조건을 통과한 종목이 없습니다.</td></tr>`;
-      const analyzed = nasdaqScan.rows.length, total = nasdaqScan.total || 102 + nasdaqCustomSymbols.length;
-      document.getElementById("scanUsPatterns").disabled = nasdaqScan.running;
-      document.getElementById("scanUsPatterns").textContent = nasdaqScan.running ? `분석 중 ${analyzed}/${total}` : analyzed >= total ? "분석 완료 · 다시 갱신" : analyzed ? `이어 분석 ${analyzed}/${total}` : "조건 분석 갱신";
-      document.getElementById("usPatternNote").textContent = nasdaqScan.running ? `미장 조건 분석 진행 중 · ${analyzed}/${total}` : analyzed >= total ? `조건 분석 완료 · 조건 통과 ${candidates.length}개 · 추가 종목도 포함됩니다.` : `나스닥100+추가 종목 ${analyzed}/${total}개 분석됨 · 버튼을 누르면 이어서 진행합니다.`;
-    }
-
-    async function scanNasdaq100(reset = false) {
-      if (nasdaqScan.running) return;
-      if (reset || nasdaqScan.next >= nasdaqScan.total) nasdaqScan = { rows: [], next: 0, total: 102 + nasdaqCustomSymbols.length, running: false };
-      nasdaqScan.running = true; renderNasdaq100();
-      try {
-        while (nasdaqScan.next < nasdaqScan.total) {
-          const payload = await jsonpRequest({ action: "nasdaq100Batch", start: nasdaqScan.next, count: 5, extra: nasdaqCustomSymbols.join(",") }, 60000);
-          if (!payload || !payload.ok) throw new Error(payload && payload.error || "나스닥100 응답 오류");
-          nasdaqScan.rows.push(...(payload.rows || [])); nasdaqScan.next = payload.next; nasdaqScan.total = payload.total;
-          localStorage.setItem("nasdaq100Scan", JSON.stringify({ ...nasdaqScan, running: false })); renderNasdaq100();
-          if (payload.done) break;
-        }
-      } catch (error) {
-        console.warn("Nasdaq100 scan failed", error); document.getElementById("nasdaqNote").textContent = `${nasdaqScan.next}/${nasdaqScan.total}에서 일시 중단 · 다시 누르면 이어집니다. (${error.message})`;
-      } finally {
-        nasdaqScan.running = false; localStorage.setItem("nasdaq100Scan", JSON.stringify(nasdaqScan)); renderNasdaq100();
-      }
-    }
-
-    function renderChartPatterns(scored) {
-      const labels = { box: "박스권", uptrend: "우상향", pullback: "눌림목", golden: "골든크로스", volume: "거래량 증가" };
-      const selected = (document.getElementById("patternFilter") || {}).value || "all";
-      const scanButton = document.getElementById("scanPatterns");
-      const analyzed = kospiScan.rows.length;
-      const total = kospiScan.total || 200;
-      scanButton.disabled = kospiScan.running;
-      scanButton.textContent = kospiScan.running
-        ? `분석 중 ${analyzed}/${total}`
-        : (analyzed >= total ? "분석 완료 · 다시 갱신" : analyzed ? `이어 분석 ${analyzed}/${total}` : "조건 분석 갱신");
-      const evaluated = scored.map(entry => ({ ...entry, pattern: chartPatternFlags(entry.item) }));
-      const counts = Object.keys(labels).reduce((result, key) => {
-        result[key] = evaluated.filter(entry => entry.pattern.flags[key] && !entry.pattern.risk).length;
-        return result;
-      }, {});
-      const boxStateLabels = { lower: "박스 하단", middle: "박스 중단", upper: "박스 상단", breakout: "상단 돌파", breakdown: "하단 이탈" };
-      const boxStateCounts = Object.keys(boxStateLabels).reduce((result, key) => {
-        result[key] = evaluated.filter(entry => entry.pattern.flags.box && entry.pattern.box.code === key && !entry.pattern.risk).length;
-        return result;
-      }, {});
-      document.getElementById("patternSummary").innerHTML = Object.entries(labels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${counts[key]}개</strong></article>`).join("") + Object.entries(boxStateLabels).map(([key, label]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${boxStateCounts[key]}개</strong></article>`).join("");
-      const candidates = evaluated.filter(entry => {
-        const matches = patternFilterMatches(entry.pattern, selected);
-        return matches && !entry.pattern.risk;
-      }).sort((a, b) => {
-        const aCount = Object.values(a.pattern.flags).filter(Boolean).length;
-        const bCount = Object.values(b.pattern.flags).filter(Boolean).length;
-        return bCount - aCount || b.score.total - a.score.total;
-      }).slice(0, 30);
-      const fmt = value => Number.isFinite(Number(value)) ? Number(value).toFixed(1) : "-";
-      const priceFmt = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : "-";
-      document.getElementById("patternRows").innerHTML = candidates.length ? candidates.map((entry, index) => {
-        const item = entry.item;
-        const tags = Object.entries(entry.pattern.flags).filter(([, value]) => value).map(([key]) => labels[key]);
-        return `<tr><td>${index + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td>${tags.map(tag => `<span class="phase-badge">${tag}</span>`).join(" ")}</td><td>${boxPositionCell(entry.pattern)}</td><td>${fmt(item.boxRange60)}%</td><td>${priceFmt(item.boxLow60)}</td><td>${priceFmt(item.boxHigh60)}</td><td>${fmt(item.trend20)}%</td><td>${fmt(item.ma20Gap)}%</td><td>${fmt(item.ma60Gap)}%</td><td>${fmt(item.rsi)}</td><td>${fmt(item.volumeRatio)}%</td><td>${fmt(item.mdd)}%</td><td class="risk-pass">관찰 후보</td></tr>`;
-      }).join("") : `<tr><td colspan="14">선택한 조건을 통과한 종목이 없습니다. 최신 코드로 코스피200을 다시 분석해 주세요.</td></tr>`;
-      const risky = evaluated.filter(entry => entry.pattern.risk).length;
-      document.getElementById("patternNote").textContent = kospiScan.running
-        ? `조건 분석 진행 중 · ${analyzed}/${total}종목 완료 · 화면을 닫지 말고 잠시 기다려 주세요.`
-        : analyzed >= total
-          ? `조건 분석 완료 · ${analyzed}/${total}종목 · 위험 제외 ${risky}개 · 조건검색은 관찰 후보이며 매수 신호가 아닙니다.`
-          : `${evaluated.length}종목 기준 · 위험 제외 ${risky}개 · 조건 분석 갱신을 눌러 최신 결과를 계산하세요.`;
-    }
-
-    function reviewReasons(item, score) {
-      const reasons = [];
-      if (score.total < 70) reasons.push("종합 70점 미만");
-      if (score.confidence < 80) reasons.push("데이터 부족");
-      if ((score.stability ?? 0) < 40) reasons.push("안정성 부족");
-      if (Number(item.mdd || 0) < -35) reasons.push("낙폭 위험");
-      if (Number(item.mom6 || 0) > 100 || Number(item.mom12 || 0) > 200) reasons.push("과열");
-      const factorFloor = [score.value, score.quality, score.growth].filter(v => v !== null);
-      if (factorFloor.some(v => v < 30)) reasons.push("핵심 팩터 취약");
-      return [...new Set(reasons)];
-    }
-
-    function renderInvestmentReview(scored) {
-      const evaluated = scored.map(x => ({ ...x, reasons: reviewReasons(x.item, x.score) }));
-      const candidates = evaluated.filter(x => !x.reasons.length).slice(0, 10);
-      const overheat = evaluated.filter(x => x.reasons.includes("과열")).length;
-      const unstable = evaluated.filter(x => x.reasons.includes("안정성 부족") || x.reasons.includes("낙폭 위험")).length;
-      const average = candidates.length ? Math.round(candidates.reduce((sum, x) => sum + x.score.total, 0) / candidates.length) : 0;
-      document.getElementById("reviewSummary").innerHTML = [
-        ["투자검토 통과", `${candidates.length}개`], ["후보 평균점수", `${average}점`], ["과열 제외", `${overheat}개`], ["위험 제외", `${unstable}개`]
-      ].map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-      document.getElementById("reviewRows").innerHTML = candidates.length ? candidates.map(({ item, score }, rank) => `<tr>
-        <td>${rank + 1}</td><td><strong>${stockLink(item)}</strong><br><span class="hint">${item.ticker}</span></td><td><span class="score-badge ${cls(score.total - 60)}">${score.total}</span></td>
-        <td>${score.stability}</td><td>${Number(item.mdd || 0).toFixed(1)}%</td><td>${Number(item.mom6 || 0).toFixed(1)}%</td><td>${Number(item.mom12 || 0).toFixed(1)}%</td><td class="risk-pass">조건 통과</td></tr>`).join("") : `<tr><td colspan="8">현재 조건을 모두 통과한 종목이 없습니다.</td></tr>`;
-      const rejected = evaluated.filter(x => x.reasons.length && x.score.total >= 70).slice(0, 8);
-      document.getElementById("reviewRejected").innerHTML = rejected.length ? `<strong>고득점 탈락:</strong> ${rejected.map(x => `${x.item.name} — <span class="risk-fail">${x.reasons.join("·")}</span>`).join(" / ")}` : "고득점 위험 탈락 종목이 없습니다.";
-    }
-
-    async function scanKospi200() {
-      if (kospiScan.running) return;
-      if (kospiScan.next >= kospiScan.total) kospiScan = { rows: [], next: 0, total: 200, running: false };
-      kospiScan.running = true;
-      renderKospi200();
-      try {
-        while (kospiScan.next < kospiScan.total) {
-          const payload = await jsonpRequest({ action: "kospi200Batch", start: kospiScan.next, count: 5 }, 60000);
-          if (!payload || !payload.ok) throw new Error(payload && payload.error || "코스피200 응답 오류");
-          kospiScan.rows.push(...(payload.rows || []));
-          kospiScan.next = payload.next;
-          kospiScan.total = payload.total;
-          localStorage.setItem("kospi200Scan", JSON.stringify({ ...kospiScan, running: false }));
-          renderKospi200();
-          if (payload.done) break;
-        }
-        if (kospiScan.next >= kospiScan.total) saveQuantSnapshot();
-      } catch (error) {
-        console.warn("KOSPI200 scan failed", error);
-        document.getElementById("kospiProgress").textContent = `${kospiScan.next}/${kospiScan.total}에서 일시 중단 · 다시 누르면 이어집니다`;
-      } finally {
-        kospiScan.running = false;
-        localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
-        renderKospi200();
-      }
-    }
-
-    function strategySelections() {
-      const scored = kospiScan.rows.filter(item => !item.error).map(item => ({ item, score: quantScores(item), leader: leaderScore(item) }));
-      const stable = scored.filter(x => !reviewReasons(x.item, x.score).length).sort((a, b) => b.score.total - a.score.total).slice(0, 10)
-        .map((x, i) => ({ strategy: "stable", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.score.total, phase: "조건 통과", price: x.item.price }));
-      const leaders = scored.filter(x => x.leader.confidence >= 80).sort((a, b) => b.leader.total - a.leader.total).slice(0, 10)
-        .map((x, i) => ({ strategy: "leader", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.leader.total, phase: leadershipPhase(x.item), price: x.item.price }));
-      const hybrid = scored.filter(x => x.score.confidence >= 80 && x.leader.confidence >= 80)
-        .map(x => ({ ...x, hybridScore: Math.round(x.score.total * .5 + x.leader.total * .5) }))
-        .sort((a, b) => b.hybridScore - a.hybridScore).slice(0, 10)
-        .map((x, i) => ({ strategy: "hybrid", rank: i + 1, ticker: x.item.ticker, name: x.item.name, score: x.hybridScore, phase: leadershipPhase(x.item), price: x.item.price }));
-      return [...stable, ...leaders, ...hybrid];
-    }
-
-    function saveQuantSnapshot() {
-      const selections = strategySelections();
-      const prices = kospiScan.rows.filter(item => item.ticker && item.price).map(item => ({ ticker: item.ticker, price: item.price }));
-      const benchmarkPrice = Number((kospiScan.rows.find(item => item.benchmarkPrice) || {}).benchmarkPrice || 0);
-      if (!selections.length || !benchmarkPrice) {
-        console.warn("snapshot skipped: missing selections or benchmark");
-        return;
-      }
-      postSheetAction("snapshot", { selections, prices, benchmarkPrice });
-      setSyncStatus(`퀀트 이력 저장 요청됨 · ${new Date().toLocaleTimeString("ko-KR")}`);
-    }
 
     async function loadPerformanceHistory() {
       try {
@@ -1988,7 +1365,7 @@
       const completed = historyRows.filter(item => item.ret1m !== "" && item.ret1m != null).length;
       document.getElementById("historySummary").innerHTML = [["누적 기록일", `${dates.length}일`], ["저장 종목", `${historyRows.length}건`], ["1개월 검증 완료", `${completed}건`], ["다음 검증", dates.length ? "약 1개월 후" : "분석 필요"]]
         .map(([label, value]) => `<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-      document.getElementById("historyStatus").textContent = dates.length ? `최근 기록 ${dates.at(-1)} · 결과는 분석할 때마다 갱신됩니다.` : "저장된 점수 기록이 없습니다. 코스피200을 다시 분석하세요.";
+      document.getElementById("historyStatus").textContent = dates.length ? `최근 기록 ${dates.at(-1)} · 저장된 결과를 기준으로 계산했습니다.` : "저장된 성과 기록이 없습니다.";
     }
 
     async function loadAssetLedger() {
@@ -2152,104 +1529,6 @@
       }).join("");
     }
 
-    function turtleSettingsFromUi() {
-      const number = (id, fallback) => Math.max(2, Number(document.getElementById(id).value) || fallback);
-      return { strategy: document.getElementById("turtleStrategy").value, universe: document.getElementById("turtleUniverse").value, capital: Math.max(100000, Number(document.getElementById("turtleCapital").value) || 50000000), usCapital: Math.max(100, Number(document.getElementById("turtleUsCapital").value) || 10000), extra: document.getElementById("turtleExtra").value.trim().toUpperCase(), minAdx: Math.max(5, Number(document.getElementById("turtleMinAdx").value) || 20), entry1: number("turtleEntry1", 20), exit1: number("turtleExit1", 10), entry2: number("turtleEntry2", 55), exit2: number("turtleExit2", 20), atrPeriod: number("turtleAtr", 20), adxPeriod: number("turtleAdx", 14) };
-    }
-
-    function turtleSignature(s) { return JSON.stringify({ strategy:s.strategy, universe:s.universe, extra:s.extra, minAdx:s.minAdx, entry1:s.entry1, exit1:s.exit1, entry2:s.entry2, exit2:s.exit2, atrPeriod:s.atrPeriod, adxPeriod:s.adxPeriod }); }
-    function turtlePrice(value, item) { const n=Number(value); if(!Number.isFinite(n)) return "-"; return item&&item.market==="US" ? `$${n.toLocaleString("en-US",{maximumFractionDigits:2})}` : `${Math.round(n).toLocaleString("ko-KR")}원`; }
-    function turtleStockLink(item) { const label=escapeHtml(item.name||item.ticker||"-"),badge=`<br>${turtleMarketBadge(item)}`; if(item.market==="US") return `<a class="stock-link" href="${naverWorldStockUrl(item.ticker)}" target="_blank" rel="noopener noreferrer">${label}</a>${badge}`; const code=escapeHtml(String(item.code||item.ticker||"").replace(/\D/g,"").slice(0,6)); return `<a class="stock-link" href="https://finance.naver.com/item/main.naver?code=${code}" target="_blank" rel="noopener noreferrer">${label}</a>${badge}`; }
-    function turtleRowAttr(item) { return `data-turtle-ticker="${escapeHtml(item.ticker)}"`; }
-    function turtleStateBadge(item) { const kind=item.perfect?"perfect":item.near?"near":item.uptrend?"uptrend":item.exitSignal?"exit":""; return `<span class="turtle-state ${kind}">${escapeHtml(item.phase||"관망")}</span>`; }
-    function turtleRsLabel(score) { return score>=80?"주도주":score>=60?"강세":score>=40?"중립":"약세"; }
-    function turtleRsBadge(item) { if(item.rsScore===null||item.rsScore===""||item.rsScore===undefined)return `<span class="hint">-</span>`;const score=Number(item.rsScore);if(!Number.isFinite(score))return `<span class="hint">-</span>`;const kind=score>=80?"leader":score>=60?"strong":score>=40?"neutral":"weak";return `<span class="turtle-state turtle-rs ${kind}" title="${turtleRsLabel(score)}">${Math.round(score)}</span>`; }
-    function turtlePp(value) { if(value===null||value===""||value===undefined)return "-";const number=Number(value);return Number.isFinite(number)?`${number>=0?"+":""}${number.toFixed(1)}%p`:"-"; }
-    function turtleStage(item){return Math.max(0,Math.min(4,Number(turtleEntryStages[item.ticker])||0));}
-    function turtleStagePlan(item){const stage=turtleStage(item),base=Number(item.entry1),n=Number(item.n),entries=[base,base+.5*n,base+n,base+1.5*n];return {stage,entries,stop:stage?entries[stage-1]-2*n:base-2*n};}
-    function turtleUnit(item,settings){const capital=item&&(item.currency==="USD"||item.market==="US")?settings.usCapital:settings.capital;return Number(item&&item.n)>0?Math.floor(capital*.01/Number(item.n)):0;}
-    function turtleItemMarket(item){
-      const raw=String(item.indexGroup||item.sector||item.universe||item.benchmarkName||item.benchmarkTicker||"").toUpperCase(),ticker=String(item.ticker||"").toUpperCase();
-      if(raw.includes("NASDAQ")||raw.includes("나스닥")||item.market==="US")return "NASDAQ100";
-      if(raw.includes("KOSDAQ")||raw.includes("코스닥")||raw.includes("232080")||ticker.endsWith(".KQ"))return "KOSDAQ150";
-      if(raw.includes("KOSPI")||raw.includes("코스피")||raw.includes("KODEX200")||raw.includes("069500")||ticker.endsWith(".KS"))return "KOSPI200";
-      return "OTHER";
-    }
-    function turtleMarketBadge(item){const market=turtleItemMarket(item),kind=market==="KOSPI200"?"kospi":market==="KOSDAQ150"?"kosdaq":"other",label=market==="KOSPI200"?"코스피200":market==="KOSDAQ150"?"코스닥150":market==="NASDAQ100"?"나스닥100":"기타";return `<span class="turtle-market-badge ${kind}">${label}</span>`;}
-    function turtleMarketCap(item){return Number(item.marketCap||item.marketCapValue||0);}
-    function turtleTurnover(item){return Number(item.avgTurnover20||item.turnover20||item.averageTradingValue20||0);}
-    function turtleLargeMoney(value,item){const n=Number(value);if(!Number.isFinite(n)||n<=0)return "-";if(item&&(item.currency==="USD"||item.market==="US")){if(n>=1e12)return `$${(n/1e12).toFixed(2)}T`;if(n>=1e9)return `$${(n/1e9).toFixed(2)}B`;return `$${(n/1e6).toFixed(1)}M`;}if(n>=1e12)return `${(n/1e12).toFixed(n>=1e13?1:2)}조`;return `${Math.round(n/1e8).toLocaleString("ko-KR")}억`;}
-    function turtleLiquidityLabel(value,item){const n=Number(value),us=item&&(item.currency==="USD"||item.market==="US");return us?(n>=1e8?"매우 풍부":n>=5e7?"양호":n>=3e7?"보통":"부족"):(n>=3e10?"매우 풍부":n>=1e10?"양호":n>=5e9?"보통":"부족");}
-    function turtlePassSizeFilters(item){const us=item.currency==="USD"||item.market==="US",capLevels=us?{LOW:1e9,MID:5e9,HIGH:1e10}:{LOW:3e11,MID:5e11,HIGH:1e12},turnLevels=us?{LOW:1e7,MID:3e7,HIGH:5e7,VERY_HIGH:1e8}:{LOW:3e9,MID:5e9,HIGH:1e10,VERY_HIGH:3e10};return (turtleResultPrefs.marketCap==="ALL"||turtleMarketCap(item)>=capLevels[turtleResultPrefs.marketCap])&&(turtleResultPrefs.turnover==="ALL"||turtleTurnover(item)>=turnLevels[turtleResultPrefs.turnover]);}
-    function turtleSortRows(rows){const sort=turtleResultPrefs.sort;return [...rows].sort((a,b)=>{if(sort==="RS")return (Number(b.rsScore)||-1)-(Number(a.rsScore)||-1);if(sort==="ADX")return (Number(b.adx)||0)-(Number(a.adx)||0);if(sort==="MARKET_CAP")return turtleMarketCap(b)-turtleMarketCap(a);if(sort==="TURNOVER")return turtleTurnover(b)-turtleTurnover(a);if(sort==="NAME")return String(a.name||a.ticker).localeCompare(String(b.name||b.ticker),"ko");const da=Math.abs(Number(a.price)-Number(a.entry1))/(Number(a.n)||Number(a.entry1)||1),db=Math.abs(Number(b.price)-Number(b.entry1))/(Number(b.n)||Number(b.entry1)||1);return da-db||(Number(b.rsScore)||-1)-(Number(a.rsScore)||-1);});}
-    function applyTurtleRsScores(items) {
-      items.forEach(item=>{item.rsScore=null;});
-      const ranked=items.filter(item=>item.rsRaw!==null&&item.rsRaw!==""&&item.rsRaw!==undefined&&Number.isFinite(Number(item.rsRaw))).sort((a,b)=>Number(a.rsRaw)-Number(b.rsRaw));
-      if(!ranked.length)return;
-      let start=0;
-      while(start<ranked.length){let end=start;while(end+1<ranked.length&&Number(ranked[end+1].rsRaw)===Number(ranked[start].rsRaw))end++;const averageRank=(start+end)/2;const score=ranked.length===1?100:Math.round(1+99*averageRank/(ranked.length-1));for(let index=start;index<=end;index++)ranked[index].rsScore=score;start=end+1;}
-    }
-
-    function turtleSignedShares(value){const n=Number(value);return Number.isFinite(n)?`${n>0?"+":""}${Math.round(n).toLocaleString("ko-KR")}주`:"-";}
-    function domesticTrendBadge(trend){const status=trend&&trend.status||"관망",kind=status==="매수 조건 충족"?"perfect":status==="수급 동반 신고가"?"near":status==="눌림 대기"?"uptrend":status.includes("이탈")?"exit":"";return `<span class="turtle-state ${kind}">${escapeHtml(status)}</span>`;}
-
-    function renderTurtle() {
-      const settings=turtleSettingsFromUi(), allValid=turtleScan.rows.filter(item=>!item.error);
-      applyTurtleRsScores(allValid);
-      const valid=allValid.filter(item=>(turtleResultPrefs.market==="ALL"||turtleItemMarket(item)===turtleResultPrefs.market)&&turtlePassSizeFilters(item));
-      const perfect=turtleSortRows(valid.filter(item=>item.perfect)), tracking=turtleSortRows(valid.filter(item=>item.near||item.uptrend)), watch=turtleSortRows(valid.filter(item=>!item.perfect&&!item.near&&!item.uptrend));
-      const failed=turtleScan.rows.length-allValid.length,total=turtleScan.total||0;
-      document.getElementById("turtleSummary").innerHTML=[["분석 완료",`${turtleScan.rows.length}/${total||"-"}`],["완전 진입",`${perfect.length}개`],["돌파 근접",`${valid.filter(x=>x.near).length}개`],["상승 추세",`${valid.filter(x=>x.uptrend).length}개`]].map(([label,value])=>`<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-      const marketCounts={KOSPI200:allValid.filter(x=>turtleItemMarket(x)==="KOSPI200").length,KOSDAQ150:allValid.filter(x=>turtleItemMarket(x)==="KOSDAQ150").length,NASDAQ100:allValid.filter(x=>turtleItemMarket(x)==="NASDAQ100").length};
-      document.querySelectorAll("#turtleMarketFilters [data-market]").forEach(button=>button.classList.toggle("active",button.dataset.market===turtleResultPrefs.market));
-      document.getElementById("turtleResultSort").value=turtleResultPrefs.sort;
-      document.getElementById("turtleMarketCapFilter").value=String(turtleResultPrefs.marketCap);
-      document.getElementById("turtleTurnoverFilter").value=String(turtleResultPrefs.turnover);
-      document.getElementById("turtleResultCount").textContent=`현재 표시 ${valid.length}개 · 코스피200 ${marketCounts.KOSPI200}개 · 코스닥150 ${marketCounts.KOSDAQ150}개 · 나스닥100 ${marketCounts.NASDAQ100}개`;
-      const progress=document.getElementById("turtleProgress"),button=document.getElementById("scanTurtle");
-      progress.textContent=turtleScan.running?`${settings.universe} 분석 중 · ${turtleScan.rows.length}/${total||"구성종목 확인 중"}`:turtleScan.rows.length?`${settings.universe} · 유효 ${valid.length} · 실패 ${failed} · ${turtleScan.next>=total&&total?"분석 완료":"중단 지점부터 이어서 가능"}`:"분석 대상을 선택하고 시작하세요. 결과는 이 기기에 이어서 저장됩니다.";
-      button.disabled=turtleScan.running; button.textContent=turtleScan.running?`분석 중 ${turtleScan.rows.length}/${total||"…"}`:turtleScan.next>=total&&total?"다시 분석":turtleScan.next?"이어 분석":"분석 시작";
-      const domesticMode=settings.strategy==="PULLBACK_KR";
-      document.getElementById("turtleDomesticPanel").hidden=!domesticMode;
-      ["turtleClassicPerfectPanel","turtleClassicTrackingPanel","turtleClassicWatchPanel"].forEach(id=>document.getElementById(id).hidden=domesticMode);
-      if(domesticMode){
-        const domestic=valid.filter(item=>item.domesticTrend).sort((a,b)=>{const rank=s=>s==="매수 조건 충족"?0:s==="수급 동반 신고가"?1:s==="눌림 대기"?2:3;return rank(a.domesticTrend.status)-rank(b.domesticTrend.status)||(Number(b.rsScore)||0)-(Number(a.rsScore)||0);});
-        const counts=status=>domestic.filter(item=>item.domesticTrend.status===status).length;
-        document.getElementById("turtleSummary").innerHTML=[["분석 완료",`${turtleScan.rows.length}/${total||"-"}`],["매수 조건",`${counts("매수 조건 충족")}개`],["수급 신고가",`${counts("수급 동반 신고가")}개`],["눌림 대기",`${counts("눌림 대기")}개`]].map(([label,value])=>`<article class="summary-card"><span class="label">${label}</span><strong class="quant-score">${value}</strong></article>`).join("");
-        document.getElementById("turtleDomesticRows").innerHTML=domestic.map(item=>{const d=item.domesticTrend;return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${escapeHtml(d.signalDate||"-")}</td><td>${turtlePrice(d.breakoutLevel,item)}</td><td>${turtleLargeMoney(d.signalTurnover,item)}</td><td>${turtleSignedShares(d.signalInstitutionNet)}</td><td>${turtleSignedShares(d.signalForeignNet)}</td><td>${d.bearish?"예":"-"}</td><td>${d.volumeDown?"예":"-"}</td><td>${turtlePrice(d.ma5,item)}</td><td>${turtlePrice(d.ma10,item)}</td><td>${domesticTrendBadge(d)}</td></tr>`;}).join("")||`<tr><td colspan="12">20일 신고가·500억 거래대금·양봉·수급 조건을 충족한 종목이 없습니다.</td></tr>`;
-        return;
-      }
-      const fullRow=item=>{const unit=turtleUnit(item,settings),base=Number(item.entry1),plan=turtleStagePlan(item);return `<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${unit.toLocaleString()}주</td><td>${turtlePrice(base,item)}</td><td>${turtlePrice(base+.5*item.n,item)}</td><td>${turtlePrice(base+item.n,item)}</td><td>${turtlePrice(base+1.5*item.n,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${plan.stage?plan.stage+"차":"미진입"}<br><span class="hint">${(unit*plan.stage).toLocaleString()}주</span></td><td>${turtlePrice(plan.stop,item)}</td><td>${turtleStateBadge(item)}</td></tr>`;};
-      document.getElementById("turtlePerfectRows").innerHTML=perfect.length?perfect.map(fullRow).join(""):`<tr><td colspan="18">현재 완전 진입 조건을 충족한 종목이 없습니다.</td></tr>`;
-      document.getElementById("turtleTrackingRows").innerHTML=tracking.length?tracking.map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.n,item)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtleStateBadge(item)}</td></tr>`).join(""):`<tr><td colspan="12">돌파 근접 또는 상승 추세 종목이 없습니다.</td></tr>`;
-      document.getElementById("turtleWatchRows").innerHTML=watch.slice(0,100).map(item=>`<tr ${turtleRowAttr(item)}><td><strong>${turtleStockLink(item)}</strong><br><span class="hint">${escapeHtml(item.ticker)}</span></td><td>${turtlePrice(item.price,item)}</td><td>${turtleLargeMoney(turtleMarketCap(item),item)}</td><td>${turtleLargeMoney(turtleTurnover(item),item)}</td><td>${Number(item.adx).toFixed(1)}</td><td>${turtleRsBadge(item)}</td><td>${Number(item.plusDi).toFixed(1)}</td><td>${Number(item.minusDi).toFixed(1)}</td><td>${turtlePrice(item.entry1,item)}</td><td>${turtlePrice(item.exit1,item)}</td><td>${((item.price/item.entry1-1)*100).toFixed(2)}%</td><td>${turtleStateBadge(item)}</td></tr>`).join("")||`<tr><td colspan="12">분석을 시작하면 관망 종목이 표시됩니다.</td></tr>`;
-    }
-
-    function renderTurtleChart(item) {
-      const chart=document.getElementById("turtleChart"),guide=document.getElementById("turtleGuide");
-      if(!item||!item.chart||!(item.chart.closes||[]).length){chart.innerHTML=`<div class="ledger-empty">차트 데이터가 없습니다.</div>`;guide.innerHTML="";return;}
-      const settings=turtleSettingsFromUi(),unit=turtleUnit(item,settings),base=Number(item.entry1),plan=turtleStagePlan(item),entries=plan.entries,stop=plan.stop;
-      document.getElementById("turtleDialogTitle").textContent=`${item.name} (${item.ticker}) · 최근 60일`;
-      const rsAvailable=item.rsScore!==null&&item.rsScore!==""&&item.rsScore!==undefined&&Number.isFinite(Number(item.rsScore)),rsScore=rsAvailable?Number(item.rsScore):null;
-      document.getElementById("turtleDialogMeta").textContent=`${item.phase||"관망"} · ADX ${Number(item.adx).toFixed(1)} · RS ${rsAvailable?Math.round(rsScore)+" ("+turtleRsLabel(rsScore)+")":"-"} · +DI ${Number(item.plusDi).toFixed(1)} / -DI ${Number(item.minusDi).toFixed(1)}`;
-      document.getElementById("turtleEntryStage").value=String(plan.stage);
-      document.getElementById("turtleDialogSummary").innerHTML=`<div class="turtle-guide"><span>현재 보유 단계</span><strong>${plan.stage?plan.stage+"차":"미진입"}</strong></div><div class="turtle-guide"><span>누적 계획 수량</span><strong>${(unit*plan.stage).toLocaleString()}주</strong></div><div class="turtle-guide"><span>${plan.stage?"통합":"계획"} 손절선 (-2N)</span><strong>${turtlePrice(stop,item)}</strong></div><div class="turtle-guide"><span>10일 청산선 (매일 갱신)</span><strong>${turtlePrice(item.exit1,item)}</strong></div>`;
-      const cap=turtleMarketCap(item),turnover=turtleTurnover(item);
-      document.getElementById("turtleLiquiditySummary").innerHTML=`<div class="turtle-guide"><span>시가총액</span><strong>${turtleLargeMoney(cap,item)}</strong></div><div class="turtle-guide"><span>20일 평균 거래대금</span><strong>${turtleLargeMoney(turnover,item)}</strong></div><div class="turtle-guide"><span>유동성 등급</span><strong>${turnover?turtleLiquidityLabel(turnover,item):"-"}</strong></div><div class="turtle-guide"><span>추천 기준</span><strong>${!cap||!turnover?"계산 대기":(item.market==="US"?cap>=5e9&&turnover>=3e7:cap>=5e11&&turnover>=5e9)?"충족":"미충족"}</strong><small>${item.market==="US"?"시총 $5B · 거래대금 $30M":"시총 5천억 · 거래대금 50억"}</small></div>`;
-      document.getElementById("turtleRsSummary").innerHTML=`<div class="turtle-guide"><span>RS 점수</span><strong>${rsAvailable?Math.round(rsScore)+"점":"-"}</strong><small>${rsAvailable?turtleRsLabel(rsScore):"계산 대기"}</small></div><div class="turtle-guide"><span>1개월 초과수익</span><strong>${turtlePp(item.rs1)}</strong></div><div class="turtle-guide"><span>3개월 초과수익</span><strong>${turtlePp(item.rs3)}</strong></div><div class="turtle-guide"><span>6개월 초과수익</span><strong>${turtlePp(item.rs6)}</strong></div>`;
-      document.getElementById("turtleRsGuide").textContent=`기준: ${item.benchmarkName||item.benchmarkTicker||"시장 기준지수"} · 1개월 20% + 3개월 30% + 6개월 50% 가중 · 분석군 내 백분위 (80+ 주도주, 60~79 강세, 40~59 중립, 40 미만 약세)`;
-      const values=item.chart.closes.map(Number),lines=[...entries,stop,Number(item.exit1)].filter(Number.isFinite);let min=Math.min(...values,...lines),max=Math.max(...values,...lines);const pad=Math.max((max-min)*.08,max*.005);min-=pad;max+=pad;
-      const width=900,height=280,left=54,right=16,top=18,bottom=30,x=i=>left+i/Math.max(1,values.length-1)*(width-left-right),y=v=>top+(max-v)/Math.max(.0001,max-min)*(height-top-bottom),points=values.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-      const line=(value,color,label)=>`<line x1="${left}" y1="${y(value)}" x2="${width-right}" y2="${y(value)}" stroke="${color}" stroke-dasharray="6 5"/><text x="${left+4}" y="${y(value)-5}" fill="${color}" font-size="11">${label} ${turtlePrice(value,item)}</text>`;
-      chart.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img"><g stroke="rgba(255,255,255,.08)"><line x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"/><line x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"/></g>${line(entries[0],"#19d899","1차")}${line(entries[1],"#f1b84b","2차")}${line(entries[2],"#ff9f43","3차")}${line(entries[3],"#ff7b72","4차")}${line(stop,"#ff4d60",plan.stage?"통합 손절":"계획 손절")}${line(item.exit1,"#b68cff","10일 청산")}<polyline points="${points}" fill="none" stroke="#49d3d1" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${x(values.length-1)}" cy="${y(values.at(-1))}" r="5" fill="#fff"/><text x="${left}" y="${height-8}" fill="#7890aa" font-size="11">${escapeHtml(item.chart.dates[0]||"")}</text><text x="${width-right}" y="${height-8}" text-anchor="end" fill="#7890aa" font-size="11">${escapeHtml(item.chart.dates.at(-1)||"")}</text></svg>`;
-      guide.innerHTML=entries.map((price,index)=>`<div class="turtle-guide"><span>${index+1}차 진입${index?` (+${(index*.5).toFixed(1)}N)`:" (20일 돌파)"}</span><strong>${turtlePrice(price,item)}</strong><small>${unit.toLocaleString()}주</small></div>`).join("");
-    }
-
-    function resetTurtleScan(){turtleScan={rows:[],next:0,total:0,running:false,signature:""};turtleSelectedTicker="";localStorage.removeItem("turtleAdxScanV2");renderTurtle();}
-    async function scanTurtle(){
-      if(turtleScan.running)return;const settings=turtleSettingsFromUi(),signature=turtleSignature(settings);localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(settings));if(turtleScan.signature!==signature||(turtleScan.total&&turtleScan.next>=turtleScan.total))turtleScan={rows:[],next:0,total:0,running:false,signature};turtleScan.signature=signature;turtleScan.running=true;renderTurtle();
-      try{do{const payload=await jsonpRequest({action:"turtleBatch",strategy:settings.strategy,universe:settings.universe,start:turtleScan.next,count:5,extra:settings.extra,entry1:settings.entry1,exit1:settings.exit1,entry2:settings.entry2,exit2:settings.exit2,atrPeriod:settings.atrPeriod,adxPeriod:settings.adxPeriod,minAdx:settings.minAdx},60000);if(!payload||!payload.ok)throw new Error(payload&&payload.error||"터틀 분석 응답 오류");turtleScan.rows.push(...(payload.rows||[]));turtleScan.next=payload.next;turtleScan.total=payload.total;localStorage.setItem("turtleAdxScanV2",JSON.stringify({...turtleScan,running:false}));renderTurtle();if(payload.done)break;await new Promise(resolve=>setTimeout(resolve,120));}while(turtleScan.next<turtleScan.total);}catch(error){console.warn("Turtle scan failed",error);document.getElementById("turtleProgress").textContent=`${turtleScan.next}/${turtleScan.total||"?"}에서 일시 중단 · 다시 누르면 이어집니다. (${error.message})`;}finally{turtleScan.running=false;localStorage.setItem("turtleAdxScanV2",JSON.stringify(turtleScan));renderTurtle();}
-    }
 
     function render(includeEditor = true) {
       rows = rows.map(r => ({
@@ -2272,9 +1551,6 @@
       renderSectors(sectorData);
       renderCards(items);
       renderDiagnosis(items, sectorData);
-      renderQuant(items);
-      renderKospi200();
-      renderTurtle();
       if (includeEditor) renderEditor();
       document.getElementById("toggleMask").textContent = maskMoney ? "금액 보이기" : "금액 가리기";
     }
@@ -2662,7 +1938,7 @@
     function renderMarketIndicators() {
       document.getElementById("koreaIndicatorGrid").innerHTML = (marketIndicators.korea || []).map((item, index) => renderIndicatorCard(item, "korea", index)).join("") || `<div class="empty">시장 지표 갱신을 눌러주세요.</div>`;
       document.getElementById("usIndicatorGrid").innerHTML = (marketIndicators.us || []).map((item, index) => renderIndicatorCard(item, "us", index)).join("") || `<div class="empty">시장 지표 갱신을 눌러주세요.</div>`;
-      document.getElementById("marketIndicatorStatus").textContent = marketIndicators.updatedAt ? `마지막 수집 ${marketIndicators.updatedAt} · 퀀트 점수 미반영` : "지표는 관찰용으로만 수집하며 퀀트 점수에 반영하지 않습니다.";
+      document.getElementById("marketIndicatorStatus").textContent = marketIndicators.updatedAt ? `마지막 수집 ${marketIndicators.updatedAt} · 관찰용 지표` : "지표는 포트폴리오 판단을 돕는 관찰용 정보입니다.";
     }
 
     async function loadMarketIndicators(force = false) {
@@ -2700,9 +1976,6 @@
       queueSheetSave();
     });
 
-    document.addEventListener("change", e => {
-      if (e.target.closest(".quant-table input[data-i]")) render(false);
-    });
 
     document.addEventListener("blur", e => {
       const input = e.target.closest("input[data-format='comma']");
@@ -2745,76 +2018,6 @@
     document.getElementById("toggleMask").addEventListener("click", () => { maskMoney = !maskMoney; render(); });
     document.getElementById("refreshMarket").addEventListener("click", refreshMarket);
     document.getElementById("refreshKb").addEventListener("click", loadFromKbAccount);
-    document.getElementById("scanKospi200").addEventListener("click", scanKospi200);
-    document.getElementById("patternFilter").addEventListener("change", renderKospi200);
-    document.getElementById("scanPatterns").addEventListener("click", () => {
-      kospiScan = { rows: [], next: 0, total: 200, running: false };
-      localStorage.setItem("kospi200Scan", JSON.stringify(kospiScan));
-      scanKospi200();
-    });
-    document.getElementById("scanNasdaq").addEventListener("click", () => scanNasdaq100(false));
-    document.getElementById("addNasdaqCustom").addEventListener("click", addNasdaqCustomSymbols);
-    document.getElementById("nasdaqCustomInput").addEventListener("keydown", event => {
-      if (event.key === "Enter") { event.preventDefault(); addNasdaqCustomSymbols(); }
-    });
-    document.getElementById("nasdaqCustomList").addEventListener("click", event => {
-      const button = event.target.closest("[data-remove-symbol]");
-      if (button) removeNasdaqCustomSymbol(button.dataset.removeSymbol);
-    });
-    document.getElementById("scanUsPatterns").addEventListener("click", () => scanNasdaq100(true));
-    document.getElementById("usPatternFilter").addEventListener("change", renderUsPatterns);
-    document.getElementById("scanTurtle").addEventListener("click", scanTurtle);
-    document.getElementById("resetTurtle").addEventListener("click", resetTurtleScan);
-    document.getElementById("turtleStrategy").addEventListener("change", event=>{
-      if(event.target.value==="PULLBACK_KR"&&document.getElementById("turtleUniverse").value==="NASDAQ100")document.getElementById("turtleUniverse").value="KOSPI200";
-      localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(turtleSettingsFromUi()));
-      resetTurtleScan();
-    });
-    ["turtleCapital","turtleUsCapital"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{
-      localStorage.setItem("turtleAdxSettingsV1",JSON.stringify(turtleSettingsFromUi()));
-      renderTurtle();
-    }));
-    document.getElementById("turtleMarketFilters").addEventListener("click", event => {
-      const button=event.target.closest("[data-market]");
-      if(!button)return;
-      turtleResultPrefs.market=button.dataset.market;
-      localStorage.setItem("turtleResultPrefsV1",JSON.stringify(turtleResultPrefs));
-      renderTurtle();
-    });
-    document.getElementById("turtleResultSort").addEventListener("change", event => {
-      turtleResultPrefs.sort=event.target.value;
-      localStorage.setItem("turtleResultPrefsV1",JSON.stringify(turtleResultPrefs));
-      renderTurtle();
-    });
-    document.getElementById("turtleMarketCapFilter").addEventListener("change", event => {
-      turtleResultPrefs.marketCap=event.target.value;
-      localStorage.setItem("turtleResultPrefsV1",JSON.stringify(turtleResultPrefs));
-      renderTurtle();
-    });
-    document.getElementById("turtleTurnoverFilter").addEventListener("change", event => {
-      turtleResultPrefs.turnover=event.target.value;
-      localStorage.setItem("turtleResultPrefsV1",JSON.stringify(turtleResultPrefs));
-      renderTurtle();
-    });
-    document.getElementById("turtleEntryStage").addEventListener("change", event => {
-      if (!turtleSelectedTicker) return;
-      turtleEntryStages[turtleSelectedTicker] = Number(event.target.value);
-      localStorage.setItem("turtleEntryStagesV1", JSON.stringify(turtleEntryStages));
-      renderTurtle();
-      const item = turtleScan.rows.find(candidate => !candidate.error && candidate.ticker === turtleSelectedTicker);
-      if (item) renderTurtleChart(item);
-    });
-    ["turtlePerfectRows", "turtleTrackingRows", "turtleWatchRows", "turtleDomesticRows"].forEach(id => document.getElementById(id).addEventListener("click", event => {
-      if (event.target.closest("a")) return;
-      const row = event.target.closest("tr[data-turtle-ticker]");
-      if (!row) return;
-      turtleSelectedTicker = row.dataset.turtleTicker;
-      const item = turtleScan.rows.find(candidate => !candidate.error && candidate.ticker === turtleSelectedTicker);
-      if (!item) return;
-      renderTurtleChart(item);
-      const dialog = document.getElementById("turtleDialog");
-      if (!dialog.open) dialog.showModal();
-    }));
     document.getElementById("loadHistory").addEventListener("click", loadPerformanceHistory);
     document.getElementById("loadLedger").addEventListener("click", loadAssetLedger);
     document.getElementById("refreshIndicators").addEventListener("click", () => loadMarketIndicators(true));
@@ -2835,10 +2038,6 @@
     });
     document.getElementById("indicatorDialogClose").addEventListener("click", () => document.getElementById("indicatorDialog").close());
     document.getElementById("indicatorDialog").addEventListener("click", event => {
-      if (event.target === event.currentTarget) event.currentTarget.close();
-    });
-    document.getElementById("turtleDialogClose").addEventListener("click", () => document.getElementById("turtleDialog").close());
-    document.getElementById("turtleDialog").addEventListener("click", event => {
       if (event.target === event.currentTarget) event.currentTarget.close();
     });
     document.getElementById("loadSheets").addEventListener("click", () => loadFromGoogleSheets());
@@ -2879,7 +2078,6 @@
         if (button.dataset.view === "historyView") loadPerformanceHistory();
         if (button.dataset.view === "ledgerView") loadAssetLedger();
         if (button.dataset.view === "marketView") { renderMarketIndicators(); if (!(marketIndicators.korea || []).length) loadMarketIndicators(false); }
-        if (button.dataset.view === "turtleView") renderTurtle();
       });
     });
 
@@ -2895,16 +2093,7 @@
     async function initApp() {
       document.getElementById("appsScriptUrl").value = googleConfig.appsScriptUrl;
       document.getElementById("googleSheetId").value = googleConfig.sheetId;
-      try {
-        const savedTurtle = JSON.parse(localStorage.getItem("turtleAdxSettingsV1") || "null");
-        if (savedTurtle) {
-          const ids = { strategy:"turtleStrategy", universe:"turtleUniverse", capital:"turtleCapital", usCapital:"turtleUsCapital", extra:"turtleExtra", minAdx:"turtleMinAdx", entry1:"turtleEntry1", exit1:"turtleExit1", entry2:"turtleEntry2", exit2:"turtleExit2", atrPeriod:"turtleAtr", adxPeriod:"turtleAdx" };
-          Object.entries(ids).forEach(([key,id]) => { if (savedTurtle[key] != null) document.getElementById(id).value = savedTurtle[key]; });
-        }
-      } catch (error) { console.warn("터틀 설정 복원 실패", error); }
       render();
-      renderNasdaqCustomSymbols();
-      renderNasdaq100();
       renderMarketIndicators();
       await registerPwa();
       if (hasGoogleConfig()) {
